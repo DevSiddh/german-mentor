@@ -7,7 +7,7 @@ export type SectionAccent = 'sage' | 'amber' | 'gold' | 'coral';
 
 const accentMap: Record<SectionAccent, string> = {
   sage: colors.accent,
-  amber: colors.primary,
+  amber: colors.amber,
   gold: colors.gold,
   coral: colors.danger,
 };

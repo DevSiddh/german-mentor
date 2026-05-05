@@ -3,16 +3,16 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { colors, shadows } from './theme';
 
 const tabs = [
-  { key: 'Today', label: 'Today' },
-  { key: 'Practice', label: 'Practice' },
-  { key: 'Roleplay', label: 'Roleplay' },
-  { key: 'Notebook', label: 'Notebook' },
+  { key: 'Today', label: 'Today', icon: 'T' },
+  { key: 'Practice', label: 'Practice', icon: 'P' },
+  { key: 'Roleplay', label: 'Roleplay', icon: 'R' },
+  { key: 'Notebook', label: 'Notebook', icon: 'N' },
 ] as const;
 
-function TabIcon({ active }: { active: boolean }) {
+function TabIcon({ active, icon }: { active: boolean; icon: string }) {
   return (
     <View style={[styles.icon, active && styles.iconActive]}>
-      <View style={[styles.dot, active && styles.dotActive]} />
+      <Text style={[styles.iconText, active && styles.iconTextActive]}>{icon}</Text>
     </View>
   );
 }
@@ -27,7 +27,7 @@ export default function BottomTabs({ active, onTabPress }: BottomTabsProps) {
     <View style={styles.tabBar}>
       {tabs.map((tab) => (
         <Pressable key={tab.key} onPress={() => onTabPress?.(tab.key)} style={styles.tabItem}>
-          <TabIcon active={active === tab.key} />
+          <TabIcon active={active === tab.key} icon={tab.icon} />
           <Text style={[styles.tabText, active === tab.key && styles.tabTextActive]}>{tab.label}</Text>
         </Pressable>
       ))}
@@ -67,18 +67,17 @@ const styles = StyleSheet.create({
   iconActive: {
     backgroundColor: colors.primary,
   },
-  dot: {
-    backgroundColor: colors.muted,
-    borderRadius: 999,
-    height: 6,
-    width: 6,
+  iconText: {
+    color: colors.primaryDark,
+    fontSize: 13,
+    fontWeight: '900',
   },
-  dotActive: {
-    backgroundColor: '#ffffff',
+  iconTextActive: {
+    color: '#ffffff',
   },
   tabText: {
     color: colors.muted,
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '800',
   },
   tabTextActive: {
