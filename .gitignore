@@ -28,6 +28,10 @@ yarn-debug.*
 yarn-error.*
 expo-server*.log
 expo-server*.err.log
+expo-lan-*.log
+expo-lan-*.err.log
+expo-usb-*.log
+expo-usb-*.err.log
 *.xml
 
 # local verification artifacts
