@@ -2,12 +2,11 @@ import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { typography } from './theme';
 import Mascot, { MascotState } from './Mascot';
-import TrainerAvatar from './TrainerAvatar';
 
 interface MilaHeaderProps {
   title: string;
   subtitle: string;
-  state?: MascotState;
+  state: MascotState;
 }
 
 export default function MilaHeader({ title, subtitle, state }: MilaHeaderProps) {
@@ -18,7 +17,7 @@ export default function MilaHeader({ title, subtitle, state }: MilaHeaderProps) 
         <Text style={typography.lede}>{subtitle}</Text>
       </View>
       <View style={styles.avatarWrap}>
-        <TrainerAvatar size={48} />
+        <Mascot state={state} size={60} />
       </View>
     </View>
   );
@@ -37,6 +36,6 @@ const styles = StyleSheet.create({
   },
   avatarWrap: {
     alignItems: 'flex-end',
-    width: 48,
+    width: 60,
   },
 });

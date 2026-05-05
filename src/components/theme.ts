@@ -71,11 +71,6 @@ export const typography = {
     fontWeight: '900',
     marginTop: 24,
   } as const,
-  trainerName: {
-    color: colors.primaryDark,
-    fontSize: 12,
-    fontWeight: '800',
-  } as const,
   successLabel: {
     color: colors.primaryDark,
     fontSize: 12,
