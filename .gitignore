@@ -41,11 +41,6 @@ expo-go-*.png
 test-*.png
 crop-debug.jpg
 
-# rejected/generated design experiments
-assets/mila/mila-human-*.png
-assets/mila/lisa-store-assistant-human.png
-assets/mila/mila-concept-sheet.png
-
 # macOS
 .DS_Store
 *.pem
