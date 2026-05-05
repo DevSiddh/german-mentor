@@ -25,6 +25,8 @@ import ChatBubble from './src/components/ChatBubble';
 import Mascot, { MascotState } from './src/components/Mascot';
 import ScreenFrame from './src/components/ScreenFrame';
 import MilaHeader from './src/components/MilaHeader';
+import TrainerAvatar from './src/components/TrainerAvatar';
+import MilaCoachRow from './src/components/MilaCoachRow';
 import NotebookSection from './src/components/NotebookSection';
 import { colors, typography, spacing } from './src/components/theme';
 
@@ -184,7 +186,7 @@ export default function App() {
     return (
       <AppShell>
         <View style={[styles.screen, styles.centered]}>
-          <Mascot state="idle" size={86} />
+          <TrainerAvatar size={80} pulse centered />
           <Text style={styles.loadingTitle}>Loading your mentor...</Text>
         </View>
       </AppShell>
@@ -260,7 +262,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
 function OnboardingScreen({ onContinue }: { onContinue: () => void }) {
   return (
     <ScreenFrame>
-      <Mascot state="idle" size={96} centered />
+      <TrainerAvatar size={96} centered />
       <Text style={typography.heroTitle}>Your German mentor</Text>
       <Text style={typography.lede}>Short A1.1 missions for speaking, roleplay, and mistake review.</Text>
 
@@ -291,19 +293,16 @@ function TodayScreen({
 }) {
   return (
     <ScreenFrame activeTab="Today" onTabPress={onTabPress}>
-      {/* Header: greeting left, small Mila right */}
       <View style={styles.todayHeader}>
         <View style={styles.flex}>
           <Text style={styles.todayGreeting}>Guten Morgen! 👋</Text>
           <Text style={styles.todaySubGreeting}>Mila has one mission ready for you.</Text>
         </View>
-        <Mascot state="idle" size={48} />
+        <TrainerAvatar size={48} />
       </View>
 
-      {/* Section eyebrow */}
       <Text style={styles.sectionEyebrow}>Today's mission</Text>
 
-      {/* Hero mission card */}
       <Card style={styles.heroMissionCard}>
         <Text style={styles.missionCategory}>Clothing shop</Text>
         <Text style={styles.missionGerman}>Ich suche einen Pullover in Größe M.</Text>
@@ -325,19 +324,18 @@ function TodayScreen({
         <PrimaryButton label="Start mission" onPress={onStart} />
       </Card>
 
-      {/* Compact review preview */}
       <Card style={styles.reviewPreview}>
         <Text style={typography.cardTitle}>Coming up for review</Text>
         {lesson.notebook.words.slice(0, 2).map((word) => (
           <View key={word.id} style={styles.reviewRow}>
-            <Text style={[typography.germanText, styles.reviewItemText]}>{word.german}</Text>
-            <Text style={[typography.reviewText, styles.reviewDueText]}>{word.reviewDue}</Text>
+            <Text style={typography.germanText}>{word.german}</Text>
+            <Text style={typography.reviewText}>{word.reviewDue}</Text>
           </View>
         ))}
         {lesson.notebook.rules.slice(0, 1).map((rule) => (
           <View key={rule.id} style={styles.reviewRow}>
-            <Text style={[typography.germanText, styles.reviewItemText]}>{rule.text}</Text>
-            <Text style={[typography.reviewText, styles.reviewDueText]}>{rule.reviewDue}</Text>
+            <Text style={typography.germanText}>{rule.text}</Text>
+            <Text style={typography.reviewText}>{rule.reviewDue}</Text>
           </View>
         ))}
       </Card>
@@ -487,12 +485,8 @@ function MissionFlowScreen({
             <StoreAssistant size={96} />
           </Card>
           <Card style={styles.coachCard}>
-            <View style={styles.flex}>
-              <Text style={typography.cardTitle}>Mila (Coach)</Text>
-              <Text style={typography.muted}>Stay in the scene in German. English is only help text.</Text>
-              <Text style={typography.englishGuide}>English help: {lesson.roleplay.englishHint}</Text>
-            </View>
-            <Mascot state="encouraging" size={48} />
+            <MilaCoachRow label="Mila (Coach)" message="Stay in the scene in German." />
+            <Text style={typography.englishGuide}>English help: {lesson.roleplay.englishHint}</Text>
           </Card>
           {roleplayReplied ? (
             <>
@@ -605,7 +599,7 @@ function PracticeScreen({
 
         {isSpeakCard ? (
           <View style={styles.speakPracticeBox}>
-            <Mascot state={checked ? 'celebrating' : 'listening'} size={66} />
+            <TrainerAvatar size={56} pulse={!checked} />
             <Text style={typography.targetLine}>{checked ? card.answer : 'Say it before you reveal it.'}</Text>
           </View>
         ) : (
@@ -737,15 +731,11 @@ function RoleplayScreen({
       </Card>
 
       <Card style={styles.coachCard}>
-        <Mascot state="encouraging" size={52} />
-        <View style={styles.flex}>
-          <Text style={typography.cardTitle}>Mila coach</Text>
-          <Text style={typography.muted}>English guidance stays outside the scene. Use it only when stuck.</Text>
-          <View style={styles.rowWrap}>
-            {targetWords.map((word) => (
-              <Pill key={word} label={word} />
-            ))}
-          </View>
+        <MilaCoachRow label="Mila coach" message="English guidance stays outside the scene." />
+        <View style={styles.rowWrap}>
+          {targetWords.map((word) => (
+            <Pill key={word} label={word} />
+          ))}
         </View>
       </Card>
 
@@ -848,7 +838,7 @@ function NotebookScreen({ memory, onTabPress }: { memory: AppMemory; onTabPress:
                 : 'Nothing urgent yet. Finish a session to unlock review.'}
           </Text>
         </View>
-        <Mascot state="reviewing" size={54} />
+        <TrainerAvatar size={48} />
       </Card>
 
       {memory.missions.length ? (
@@ -1002,15 +992,16 @@ const styles = StyleSheet.create({
     marginTop: 18,
   },
   todayHeader: {
-    flexDirection: 'row',
     alignItems: 'center',
+    flexDirection: 'row',
+    gap: 12,
     marginTop: 8,
   },
   todayGreeting: {
     color: colors.ink,
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '900',
-    lineHeight: 28,
+    lineHeight: 26,
   },
   todaySubGreeting: {
     color: colors.muted,
@@ -1035,9 +1026,9 @@ const styles = StyleSheet.create({
   },
   missionGerman: {
     color: colors.ink,
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: '900',
-    lineHeight: 26,
+    lineHeight: 30,
   },
   missionEnglish: {
     color: colors.muted,
@@ -1046,8 +1037,8 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   missionProgressRow: {
-    flexDirection: 'row',
     alignItems: 'center',
+    flexDirection: 'row',
     gap: 10,
     marginTop: 14,
   },
@@ -1064,22 +1055,12 @@ const styles = StyleSheet.create({
     marginTop: 18,
   },
   reviewRow: {
+    alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    gap: 12,
     paddingVertical: 8,
     borderBottomColor: colors.border,
     borderBottomWidth: 1,
-  },
-  reviewItemText: {
-    flex: 1,
-    flexShrink: 1,
-  },
-  reviewDueText: {
-    flexShrink: 0,
-    marginTop: 2,
-    textAlign: 'right',
   },
   stepTimeline: {
     flexDirection: 'row',

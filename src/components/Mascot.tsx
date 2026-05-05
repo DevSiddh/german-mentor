@@ -23,7 +23,7 @@ export default function Mascot({ state, size, centered }: MascotProps) {
 
   useEffect(() => {
     motion.setValue(0);
-    const duration = state === 'listening' ? 760 : state === 'correcting' ? 420 : 1200;
+    const duration = state === 'listening' ? 760 : state === 'correcting' ? 420 : 2000;
     const animation = Animated.loop(
       Animated.sequence([
         Animated.timing(motion, {
@@ -47,15 +47,15 @@ export default function Mascot({ state, size, centered }: MascotProps) {
 
   const translateY = motion.interpolate({
     inputRange: [0, 1],
-    outputRange: state === 'correcting' ? [0, 0] : [0, -6],
+    outputRange: state === 'correcting' ? [0, 0] : [0, -2],
   });
   const translateX = motion.interpolate({
     inputRange: [0, 0.5, 1],
-    outputRange: state === 'correcting' ? [-3, 3, -3] : [0, 0, 0],
+    outputRange: state === 'correcting' ? [-1, 1, -1] : [0, 0, 0],
   });
   const scale = motion.interpolate({
     inputRange: [0, 1],
-    outputRange: state === 'listening' ? [1, 1.08] : state === 'celebrating' ? [1, 1.05] : [1, 1],
+    outputRange: state === 'listening' ? [1, 1.02] : state === 'celebrating' ? [1, 1.02] : [1, 1],
   });
 
   return (
