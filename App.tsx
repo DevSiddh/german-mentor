@@ -330,14 +330,14 @@ function TodayScreen({
         <Text style={typography.cardTitle}>Coming up for review</Text>
         {lesson.notebook.words.slice(0, 2).map((word) => (
           <View key={word.id} style={styles.reviewRow}>
-            <Text style={typography.germanText}>{word.german}</Text>
-            <Text style={typography.reviewText}>{word.reviewDue}</Text>
+            <Text style={[typography.germanText, styles.reviewItemText]}>{word.german}</Text>
+            <Text style={[typography.reviewText, styles.reviewDueText]}>{word.reviewDue}</Text>
           </View>
         ))}
         {lesson.notebook.rules.slice(0, 1).map((rule) => (
           <View key={rule.id} style={styles.reviewRow}>
-            <Text style={typography.germanText}>{rule.text}</Text>
-            <Text style={typography.reviewText}>{rule.reviewDue}</Text>
+            <Text style={[typography.germanText, styles.reviewItemText]}>{rule.text}</Text>
+            <Text style={[typography.reviewText, styles.reviewDueText]}>{rule.reviewDue}</Text>
           </View>
         ))}
       </Card>
@@ -1066,10 +1066,20 @@ const styles = StyleSheet.create({
   reviewRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
+    gap: 12,
     paddingVertical: 8,
     borderBottomColor: colors.border,
     borderBottomWidth: 1,
+  },
+  reviewItemText: {
+    flex: 1,
+    flexShrink: 1,
+  },
+  reviewDueText: {
+    flexShrink: 0,
+    marginTop: 2,
+    textAlign: 'right',
   },
   stepTimeline: {
     flexDirection: 'row',
