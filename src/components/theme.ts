@@ -1,0 +1,183 @@
+export const colors = {
+  bg: '#F6F1EA',
+  surface: '#FDFBF7',
+  surfaceAlt: '#F3EEE6',
+  primary: '#B45309',
+  primaryDark: '#7C3A0B',
+  accent: '#4A7C59',
+  accentTint: '#E8F0E9',
+  ink: '#1F1A16',
+  muted: '#6B6560',
+  border: '#DDD5CA',
+  danger: '#C65D3B',
+  dangerTint: '#FCEAE5',
+  gold: '#D4A017',
+  goldTint: '#FDF6E3',
+};
+
+export const typography = {
+  heroTitle: {
+    color: colors.ink,
+    fontSize: 28,
+    fontWeight: '900',
+    letterSpacing: 0,
+    lineHeight: 32,
+    marginTop: 8,
+  } as const,
+  screenTitle: {
+    color: colors.ink,
+    fontSize: 22,
+    fontWeight: '900',
+    letterSpacing: 0,
+    lineHeight: 28,
+  } as const,
+  cardTitle: {
+    color: colors.ink,
+    fontSize: 15,
+    fontWeight: '800',
+    lineHeight: 21,
+  } as const,
+  lede: {
+    color: colors.muted,
+    fontSize: 13,
+    lineHeight: 19,
+    marginTop: 6,
+  } as const,
+  muted: {
+    color: colors.muted,
+    fontSize: 12,
+    lineHeight: 18,
+    marginTop: 4,
+  } as const,
+  caption: {
+    color: colors.muted,
+    fontSize: 12,
+    fontWeight: '700',
+    marginBottom: 8,
+  } as const,
+  englishGuide: {
+    color: colors.muted,
+    fontSize: 12,
+    fontWeight: '700',
+    lineHeight: 17,
+    marginTop: 8,
+  } as const,
+  sectionTitle: {
+    color: colors.ink,
+    fontSize: 14,
+    fontWeight: '900',
+    marginTop: 24,
+  } as const,
+  successLabel: {
+    color: colors.primaryDark,
+    fontSize: 12,
+    fontWeight: '900',
+  } as const,
+  dangerLabel: {
+    color: colors.danger,
+    fontSize: 12,
+    fontWeight: '900',
+    marginTop: 6,
+  } as const,
+  targetLine: {
+    color: colors.primaryDark,
+    fontSize: 12,
+    fontWeight: '900',
+    lineHeight: 17,
+    marginTop: 10,
+  } as const,
+  correctionText: {
+    color: colors.danger,
+    fontSize: 12,
+    fontWeight: '800',
+    lineHeight: 17,
+    marginTop: 8,
+  } as const,
+  correctText: {
+    color: colors.accent,
+    fontSize: 12,
+    fontWeight: '800',
+    lineHeight: 17,
+  } as const,
+  germanText: {
+    color: colors.ink,
+    fontSize: 16,
+    fontWeight: '900',
+    lineHeight: 22,
+  } as const,
+  englishText: {
+    color: colors.muted,
+    fontSize: 12,
+    lineHeight: 17,
+    marginTop: 3,
+  } as const,
+  reviewText: {
+    color: colors.primaryDark,
+    fontSize: 11,
+    fontWeight: '800',
+    marginTop: 5,
+  } as const,
+  ruleText: {
+    color: colors.primaryDark,
+    fontSize: 13,
+    fontWeight: '800',
+    lineHeight: 19,
+    marginBottom: 10,
+  } as const,
+  promptStrong: {
+    color: colors.ink,
+    fontSize: 18,
+    fontWeight: '900',
+    lineHeight: 24,
+  } as const,
+  wrongText: {
+    color: colors.danger,
+    fontSize: 22,
+    fontWeight: '900',
+    marginTop: 6,
+  } as const,
+  rightText: {
+    color: colors.accent,
+    fontSize: 22,
+    fontWeight: '900',
+  } as const,
+  wrongSmall: {
+    color: colors.danger,
+    fontSize: 14,
+    fontWeight: '900',
+  } as const,
+  rightSmall: {
+    color: colors.accent,
+    fontSize: 14,
+    fontWeight: '900',
+    marginTop: 4,
+  } as const,
+};
+
+export const shadows = {
+  card: {
+    elevation: 3,
+    shadowColor: '#1F1A16',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.06,
+    shadowRadius: 16,
+  },
+  button: {
+    elevation: 4,
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.2,
+    shadowRadius: 16,
+  },
+};
+
+export const spacing = {
+  horizontal: 16,
+  cardPadding: 20,
+  cardRadius: 20,
+  cardMarginTop: 18,
+  buttonMinHeight: 54,
+  compactButtonMinHeight: 48,
+  inputMinHeight: 56,
+  scrollBottomPadding: 148,
+};

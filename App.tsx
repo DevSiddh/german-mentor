@@ -1,13 +1,9 @@
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
-  Animated,
-  Easing,
   Image,
-  ImageSourcePropType,
   Platform,
   Pressable,
-  ScrollView,
   StyleSheet,
   StatusBar as NativeStatusBar,
   Text,
@@ -20,20 +16,23 @@ import { AppMemory, defaultMemory, loadMemory, NotebookEntry, RuleEntry, saveMem
 import { assignmentFromCommand, assignmentFromQuickAction, QuickAction } from './src/trainer';
 import type { Assignment, MissionStage } from './src/types';
 
+import Card from './src/components/Card';
+import Pill from './src/components/Pill';
+import PrimaryButton from './src/components/PrimaryButton';
+import SecondaryButton from './src/components/SecondaryButton';
+import ProgressBar from './src/components/ProgressBar';
+import ChatBubble from './src/components/ChatBubble';
+import Mascot, { MascotState } from './src/components/Mascot';
+import ScreenFrame from './src/components/ScreenFrame';
+import MilaHeader from './src/components/MilaHeader';
+import MissionCard from './src/components/MissionCard';
+import NotebookSection from './src/components/NotebookSection';
+import { colors, typography, spacing } from './src/components/theme';
+
 (Text as any).defaultProps = { ...(Text as any).defaultProps, maxFontSizeMultiplier: 1.1 };
 (TextInput as any).defaultProps = { ...(TextInput as any).defaultProps, maxFontSizeMultiplier: 1.1 };
 
 type Screen = 'onboarding' | 'today' | 'mission' | 'practice' | 'speaking' | 'roleplay' | 'mistakes' | 'note' | 'notebook';
-type MascotState = 'idle' | 'listening' | 'encouraging' | 'correcting' | 'celebrating' | 'reviewing';
-
-const mascots: Record<MascotState, ImageSourcePropType> = {
-  idle: require('./assets/mila/mila-idle.png'),
-  listening: require('./assets/mila/mila-listening.png'),
-  encouraging: require('./assets/mila/mila-encouraging.png'),
-  correcting: require('./assets/mila/mila-correcting.png'),
-  celebrating: require('./assets/mila/mila-celebrating.png'),
-  reviewing: require('./assets/mila/mila-reviewing.png'),
-};
 
 const lenaStoreAssistant = require('./assets/mila/lena-store-assistant.png');
 
@@ -266,31 +265,12 @@ function AppShell({ children }: { children: React.ReactNode }) {
   );
 }
 
-function ScreenFrame({
-  children,
-  activeTab,
-  onTabPress,
-}: {
-  children: React.ReactNode;
-  activeTab?: string;
-  onTabPress?: (tab: string) => void;
-}) {
-  return (
-    <View style={styles.screen}>
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {children}
-      </ScrollView>
-      {activeTab ? <BottomTabs active={activeTab} onTabPress={onTabPress} /> : null}
-    </View>
-  );
-}
-
 function OnboardingScreen({ onContinue }: { onContinue: () => void }) {
   return (
     <ScreenFrame>
       <Mascot state="idle" size={96} centered />
-      <Text style={styles.heroTitle}>Your German mentor</Text>
-      <Text style={styles.lede}>Short A1.1 missions for speaking, roleplay, and mistake review.</Text>
+      <Text style={typography.heroTitle}>Your German mentor</Text>
+      <Text style={typography.lede}>Short A1.1 missions for speaking, roleplay, and mistake review.</Text>
 
       <View style={styles.setupStack}>
         <Pill label="Goal: everyday German" />
@@ -299,8 +279,8 @@ function OnboardingScreen({ onContinue }: { onContinue: () => void }) {
       </View>
 
       <Card style={styles.questionCard}>
-        <Text style={styles.cardTitle}>Start calmly.</Text>
-        <Text style={styles.mutedText}>Today you practice a real situation: in a clothing shop.</Text>
+        <Text style={typography.cardTitle}>Start calmly.</Text>
+        <Text style={typography.muted}>Today you practice a real situation: in a clothing shop.</Text>
       </Card>
 
       <PrimaryButton label="Start my first mission" onPress={onContinue} />
@@ -329,45 +309,44 @@ function TodayScreen({
 
   return (
     <ScreenFrame activeTab="Today" onTabPress={onTabPress}>
-      <HeaderWithMascot title={`${lesson.level} Today`} subtitle="Mila prepared one guided mission" state="idle" />
+      <MilaHeader title={`${lesson.level} Today`} subtitle="Mila prepared one guided mission" state="idle" />
 
-      <Card style={styles.mentorCard}>
-        <Mascot state="encouraging" size={56} />
-        <View style={styles.flex}>
-          <Text style={styles.successLabel}>Clothing shop mission</Text>
-          <Text style={styles.cardTitle}>Ask for a sweater in size M.</Text>
-          <Text style={styles.mutedText}>German target: Ich suche einen Pullover in Größe M.</Text>
-          <Text style={styles.englishGuide}>English help stays visible so this still feels like learning, not a German-only app.</Text>
-          <View style={styles.rowWrap}>
-            <Pill label="der Pullover" />
-            <Pill label="einen Pullover" tone="warm" />
-            <Pill label="size M" />
+      <Card style={styles.heroMissionCard}>
+        <View style={styles.heroMissionTop}>
+          <Mascot state="encouraging" size={56} />
+          <View style={styles.flex}>
+            <Text style={typography.successLabel}>Clothing shop mission</Text>
+            <Text style={typography.cardTitle}>Ask for a sweater in size M.</Text>
+            <Text style={typography.muted}>German target: Ich suche einen Pullover in Größe M.</Text>
+            <Text style={typography.englishGuide}>English help stays visible so this still feels like learning, not a German-only app.</Text>
+            <View style={styles.rowWrap}>
+              <Pill label="der Pullover" />
+              <Pill label="einen Pullover" tone="warm" />
+              <Pill label="size M" />
+            </View>
           </View>
         </View>
+        <PrimaryButton label="Start mission" onPress={onStart} />
       </Card>
 
-      <PrimaryButton label="Start mission" onPress={onStart} />
+      {activeMission ? <MissionCard mission={activeMission} /> : null}
 
-      {activeMission ? (
-        <MissionCard mission={activeMission} />
-      ) : null}
-
-      <Text style={styles.sectionTitle}>Guided path</Text>
-      <Card>
+      <Text style={typography.sectionTitle}>Guided path</Text>
+      <View style={styles.pathList}>
         {lesson.prescription.map((item, index) => (
-          <View key={item.step} style={styles.prescriptionRow}>
-            <View style={[styles.stepBadge, index === 0 && styles.stepBadgeActive]}>
-              <Text style={[styles.stepBadgeText, index === 0 && styles.stepBadgeTextActive]}>{index + 1}</Text>
+          <View key={item.step} style={styles.pathItem}>
+            <View style={[styles.pathDot, index === 0 && styles.pathDotActive]}>
+              <Text style={[styles.pathDotText, index === 0 && styles.pathDotTextActive]}>{index + 1}</Text>
             </View>
             <View style={styles.flex}>
               <Text style={styles.pathText}>{item.step}</Text>
-              <Text style={styles.mutedText}>{item.detail}</Text>
+              <Text style={typography.muted}>{item.detail}</Text>
             </View>
           </View>
         ))}
-      </Card>
+      </View>
 
-      <Text style={styles.sectionTitle}>Weak words</Text>
+      <Text style={typography.sectionTitle}>Weak words</Text>
       <View style={styles.rowWrap}>
         {weakWords.slice(0, 4).map((word, index) => (
           <Pill key={`${word}-${index}`} label={word} tone={index % 2 ? 'warm' : 'mint'} />
@@ -375,8 +354,8 @@ function TodayScreen({
       </View>
 
       <Card style={styles.notebookPreview}>
-        <Text style={styles.cardTitle}>Learning Notebook</Text>
-        <Text style={styles.mutedText}>Saved words, rules, and review items.</Text>
+        <Text style={typography.cardTitle}>Learning Notebook</Text>
+        <Text style={typography.muted}>Saved words, rules, and review items.</Text>
         <View style={styles.rowWrap}>
           <Pill label={`${Math.max(memory.words.length, lesson.notebook.words.length)} words`} />
           <Pill label={`${Math.max(memory.sentences.length, lesson.notebook.sentences.length)} sentences`} tone="warm" />
@@ -384,10 +363,20 @@ function TodayScreen({
         </View>
       </Card>
 
-      <Text style={styles.sectionTitle}>Optional trainer controls</Text>
+      {memory.activeAssignment ? (
+        <AssignmentCard assignment={memory.activeAssignment} onStart={onStartAssignment} />
+      ) : null}
+
+      {memory.completedSessions > 0 ? (
+        <Card style={styles.memoryCard}>
+          <Text style={typography.cardTitle}>Mila remembered</Text>
+          <Text style={typography.muted}>{memory.lastMentorNote}</Text>
+        </Card>
+      ) : null}
+
       <Card style={styles.trainerCard}>
-        <Text style={styles.cardTitle}>Ask Mila for extra practice</Text>
-        <Text style={styles.mutedText}>The mission is the main path. These are secondary controls for later practice.</Text>
+        <Text style={typography.cardTitle}>Ask Mila for extra practice</Text>
+        <Text style={typography.muted}>The mission is the main path. These are secondary controls for later practice.</Text>
         <View style={styles.commandWrap}>
           <TextInput
             value={command}
@@ -413,17 +402,6 @@ function TodayScreen({
           <SmallAction label="Repeat lesson" onPress={() => onQuickAction('repeat')} />
         </View>
       </Card>
-
-      {memory.activeAssignment ? (
-        <AssignmentCard assignment={memory.activeAssignment} onStart={onStartAssignment} />
-      ) : null}
-
-      {memory.completedSessions > 0 ? (
-        <Card style={styles.memoryCard}>
-          <Text style={styles.cardTitle}>Mila remembered</Text>
-          <Text style={styles.mutedText}>{memory.lastMentorNote}</Text>
-        </Card>
-      ) : null}
     </ScreenFrame>
   );
 }
@@ -431,36 +409,22 @@ function TodayScreen({
 function AssignmentCard({ assignment, onStart }: { assignment: Assignment; onStart: () => void }) {
   return (
     <Card style={styles.assignmentCard}>
-      <Text style={styles.successLabel}>{sourceLabel(assignment.source)}</Text>
-      <Text style={styles.cardTitle}>{assignment.title}</Text>
-      <Text style={styles.mutedText}>{assignment.mentorMessage}</Text>
+      <Text style={typography.successLabel}>{sourceLabel(assignment.source)}</Text>
+      <Text style={typography.cardTitle}>{assignment.title}</Text>
+      <Text style={typography.muted}>{assignment.mentorMessage}</Text>
       <View style={styles.rowWrap}>
         {assignment.targetWords.map((word) => (
           <Pill key={word} label={word} />
         ))}
       </View>
-      <Text style={styles.targetLine}>Regel: {assignment.targetRules[0]}</Text>
-      <Text style={styles.correctionText}>Achte auf: {assignment.mistakeWatch.join(', ')}</Text>
+      <Text style={typography.targetLine}>Regel: {assignment.targetRules[0]}</Text>
+      <Text style={typography.correctionText}>Achte auf: {assignment.mistakeWatch.join(', ')}</Text>
       {assignment.roleplay ? (
-        <Text style={styles.englishGuide}>
+        <Text style={typography.englishGuide}>
           Figur: {assignment.roleplay.character} · Szene: {assignment.roleplay.scene}
         </Text>
       ) : null}
       <PrimaryButton label={assignment.nextAction} onPress={onStart} />
-    </Card>
-  );
-}
-
-function MissionCard({ mission }: { mission: ReturnType<typeof upsertMission>[number] }) {
-  return (
-    <Card style={styles.missionCard}>
-      <Text style={styles.successLabel}>Fehler-Mission</Text>
-      <Text style={styles.cardTitle}>{mission.title}</Text>
-      <Text style={styles.mutedText}>{missionPathLabel(mission)}</Text>
-      <View style={styles.rowWrap}>
-        <Pill label={`Jetzt: ${missionStageLabel(mission.stage)}`} tone="warm" />
-        <Pill label={mission.status} />
-      </View>
     </Card>
   );
 }
@@ -516,15 +480,21 @@ function MissionFlowScreen({
 
   return (
     <ScreenFrame activeTab="Practice" onTabPress={onTabPress}>
-      <HeaderWithMascot
+      <MilaHeader
         title={step}
         subtitle="Clothing shop: ask for a sweater in size M"
         state={step === 'Review' ? 'reviewing' : 'encouraging'}
       />
 
-      <View style={styles.missionStepRow}>
+      <View style={styles.stepTimeline}>
         {missionSteps.map((item, index) => (
-          <Text key={item} style={[styles.stepChip, index === stepIndex && styles.stepChipActive]}>{item}</Text>
+          <View key={item} style={styles.stepTimelineItem}>
+            <View style={[styles.stepTimelineDot, index === stepIndex && styles.stepTimelineDotActive]} />
+            <Text style={[styles.stepTimelineLabel, index === stepIndex && styles.stepTimelineLabelActive]}>{item}</Text>
+            {index < missionSteps.length - 1 && (
+              <View style={[styles.stepTimelineLine, index < stepIndex && styles.stepTimelineLineActive]} />
+            )}
+          </View>
         ))}
       </View>
 
@@ -532,9 +502,9 @@ function MissionFlowScreen({
 
       {step === 'Notice' ? (
         <Card style={styles.promptCard}>
-          <Text style={styles.caption}>Mila says</Text>
-          <Text style={styles.promptStrong}>Ich suche einen Pullover in Größe M.</Text>
-          <Text style={styles.englishGuide}>English help: I am looking for a sweater in size M.</Text>
+          <Text style={typography.caption}>Mila says</Text>
+          <Text style={typography.promptStrong}>Ich suche einen Pullover in Größe M.</Text>
+          <Text style={typography.englishGuide}>English help: I am looking for a sweater in size M.</Text>
           <View style={styles.rowWrap}>
             <Pill label="der Pullover" />
             <Pill label="einen Pullover" tone="warm" />
@@ -544,18 +514,18 @@ function MissionFlowScreen({
 
       {step === 'Rule' ? (
         <Card>
-          <Text style={styles.caption}>Tiny rule</Text>
-          <Text style={styles.cardTitle}>After suchen, der Pullover changes to einen Pullover.</Text>
-          <Text style={styles.ruleText}>{targetRule}</Text>
-          <Text style={styles.englishGuide}>English help: after suchen, der Pullover becomes einen Pullover.</Text>
-          <Text style={styles.correctionText}>Watch: do not say eine Pullover.</Text>
+          <Text style={typography.caption}>Tiny rule</Text>
+          <Text style={typography.cardTitle}>After suchen, der Pullover changes to einen Pullover.</Text>
+          <Text style={typography.ruleText}>{targetRule}</Text>
+          <Text style={typography.englishGuide}>English help: after suchen, der Pullover becomes einen Pullover.</Text>
+          <Text style={typography.correctionText}>Watch: do not say eine Pullover.</Text>
         </Card>
       ) : null}
 
       {step === 'Recall' ? (
         <Card style={styles.recallCard}>
-          <Text style={styles.caption}>Active recall</Text>
-          <Text style={styles.promptStrong}>Ich suche ____ ____ in Größe M.</Text>
+          <Text style={typography.caption}>Active recall</Text>
+          <Text style={typography.promptStrong}>Ich suche ____ ____ in Größe M.</Text>
           <TextInput
             value={answer}
             onChangeText={(value) => {
@@ -571,7 +541,7 @@ function MissionFlowScreen({
           {checked ? (
             <View style={styles.answerBox}>
               <Text style={styles.answerText}>einen Pullover</Text>
-              <Text style={recallCorrect ? styles.correctText : styles.correctionText}>
+              <Text style={recallCorrect ? typography.correctText : typography.correctionText}>
                 {recallCorrect ? 'Correct. Now use the whole sentence.' : 'Almost. Mila saves this weak spot for later review.'}
               </Text>
             </View>
@@ -581,9 +551,9 @@ function MissionFlowScreen({
 
       {step === 'Speak' ? (
         <Card>
-          <Text style={styles.caption}>Speak once</Text>
-          <Text style={styles.promptStrong}>{targetSentence}</Text>
-          <Text style={styles.englishGuide}>English help: say the full shop sentence out loud.</Text>
+          <Text style={typography.caption}>Speak once</Text>
+          <Text style={typography.promptStrong}>{targetSentence}</Text>
+          <Text style={typography.englishGuide}>English help: say the full shop sentence out loud.</Text>
           <View style={styles.recordArea}>
             <Pressable style={styles.recordButton} onPress={() => setChecked((prev) => !prev)}>
               <Text style={styles.recordText}>SPEAK</Text>
@@ -591,7 +561,7 @@ function MissionFlowScreen({
           </View>
           {checked ? (
             <View style={styles.speakPracticeBox}>
-              <Text style={styles.correctText}>Saved. Mila will reuse this sentence in the roleplay.</Text>
+              <Text style={typography.correctText}>Saved. Mila will reuse this sentence in the roleplay.</Text>
             </View>
           ) : null}
         </Card>
@@ -601,18 +571,18 @@ function MissionFlowScreen({
         <>
           <Card style={styles.sceneCard}>
             <View style={styles.flex}>
-              <Text style={styles.caption}>Scene</Text>
-              <Text style={styles.cardTitle}>Lisa</Text>
-              <Text style={styles.mutedText}>Clothing shop assistant</Text>
-              <Text style={styles.targetLine}>Target: {targetSentence}</Text>
+              <Text style={typography.caption}>Scene</Text>
+              <Text style={typography.cardTitle}>Lisa</Text>
+              <Text style={typography.muted}>Clothing shop assistant</Text>
+              <Text style={typography.targetLine}>Target: {targetSentence}</Text>
             </View>
             <StoreAssistant size={96} />
           </Card>
           <Card style={styles.coachCard}>
             <View style={styles.flex}>
-              <Text style={styles.cardTitle}>Mila (Coach)</Text>
-              <Text style={styles.mutedText}>Stay in the scene in German. English is only help text.</Text>
-              <Text style={styles.englishGuide}>English help: {lesson.roleplay.englishHint}</Text>
+              <Text style={typography.cardTitle}>Mila (Coach)</Text>
+              <Text style={typography.muted}>Stay in the scene in German. English is only help text.</Text>
+              <Text style={typography.englishGuide}>English help: {lesson.roleplay.englishHint}</Text>
             </View>
             <Mascot state="encouraging" size={48} />
           </Card>
@@ -621,15 +591,15 @@ function MissionFlowScreen({
               <ChatBubble side="right" text="Ich suche einen Pullover in Größe M." />
               <ChatBubble side="left" text="Sehr gern. Einen Pullover in Größe M." />
               <Card style={styles.coachHintCard}>
-                <Text style={styles.caption}>Mila correction</Text>
-                <Text style={styles.correctText}>Gut. Du hast einen Pullover gesagt, nicht eine Pullover.</Text>
+                <Text style={typography.caption}>Mila correction</Text>
+                <Text style={typography.correctText}>Gut. Du hast einen Pullover gesagt, nicht eine Pullover.</Text>
               </Card>
             </>
           ) : (
             <Card style={styles.coachHintCard}>
-              <Text style={styles.caption}>Mila hint</Text>
-              <Text style={styles.targetLine}>{targetSentence}</Text>
-              <Text style={styles.englishGuide}>English help: use this with Lisa now.</Text>
+              <Text style={typography.caption}>Mila hint</Text>
+              <Text style={typography.targetLine}>{targetSentence}</Text>
+              <Text style={typography.englishGuide}>English help: use this with Lisa now.</Text>
             </Card>
           )}
         </>
@@ -637,19 +607,27 @@ function MissionFlowScreen({
 
       {step === 'Review' ? (
         <Card style={styles.summaryCard}>
-          <Text style={styles.successLabel}>Saved to Notebook</Text>
-          <Text style={styles.cardTitle}>Weak word: der Pullover</Text>
-          <Text style={styles.cardTitle}>Rule: {targetRule}</Text>
-          <Text style={styles.wrongSmall}>{lesson.savedMistake.wrong}</Text>
-          <Text style={styles.rightSmall}>{lesson.savedMistake.correct}</Text>
-          <Text style={styles.reviewText}>Next review: {lesson.savedMistake.nextReview}</Text>
+          <Text style={typography.successLabel}>Saved to Notebook</Text>
+          <Text style={typography.cardTitle}>Weak word: der Pullover</Text>
+          <Text style={typography.cardTitle}>Rule: {targetRule}</Text>
+          <Text style={typography.wrongSmall}>{lesson.savedMistake.wrong}</Text>
+          <Text style={typography.rightSmall}>{lesson.savedMistake.correct}</Text>
+          <Text style={typography.reviewText}>Next review: {lesson.savedMistake.nextReview}</Text>
         </Card>
       ) : null}
 
       <View style={styles.splitActions}>
         <SecondaryButton label={step === 'Review' ? 'Again' : 'Mila hint'} onPress={() => setChecked(true)} />
         <PrimaryButton
-          label={step === 'Review' ? 'Save to Notebook' : step === 'Recall' && !checked ? 'Check answer' : step === 'Roleplay' && !roleplayReplied ? 'Reply to Lisa' : 'Continue'}
+          label={
+            step === 'Review'
+              ? 'Save to Notebook'
+              : step === 'Recall' && !checked
+                ? 'Check answer'
+                : step === 'Roleplay' && !roleplayReplied
+                  ? 'Reply to Lisa'
+                  : 'Continue'
+          }
           onPress={nextStep}
           compact
         />
@@ -698,29 +676,29 @@ function PracticeScreen({
   return (
     <ScreenFrame activeTab="Practice" onTabPress={onTabPress}>
       <ProgressBar active={1} />
-      <Text style={styles.screenTitle}>Active recall</Text>
-      <Text style={styles.lede}>Answer first. Mila shows the correction only after you try.</Text>
+      <Text style={typography.screenTitle}>Active recall</Text>
+      <Text style={typography.lede}>Answer first. Mila shows the correction only after you try.</Text>
 
       {assignment ? (
         <Card style={styles.assignmentMiniCard}>
-          <Text style={styles.successLabel}>{sourceLabel(assignment.source)}</Text>
-          <Text style={styles.cardTitle}>{assignment.title}</Text>
-          <Text style={styles.mutedText}>Mila is watching: {assignment.mistakeWatch.join(', ')}</Text>
+          <Text style={typography.successLabel}>{sourceLabel(assignment.source)}</Text>
+          <Text style={typography.cardTitle}>{assignment.title}</Text>
+          <Text style={typography.muted}>Mila is watching: {assignment.mistakeWatch.join(', ')}</Text>
         </Card>
       ) : null}
 
       <Card style={styles.recallCard}>
         <View style={styles.cardTopRow}>
           <Pill label={isSpeakCard ? 'Speak card' : 'Type card'} tone="warm" />
-          <Text style={styles.caption}>{cardIndex + 1}/{lesson.practiceCards.length}</Text>
+          <Text style={typography.caption}>{cardIndex + 1}/{lesson.practiceCards.length}</Text>
         </View>
         <Text style={styles.promptText}>{card.prompt}</Text>
-        <Text style={styles.englishGuide}>{assignmentRule ? `Mila rule: ${assignmentRule}` : card.englishGuide}</Text>
+        <Text style={typography.englishGuide}>{assignmentRule ? `Mila rule: ${assignmentRule}` : card.englishGuide}</Text>
 
         {isSpeakCard ? (
           <View style={styles.speakPracticeBox}>
             <Mascot state={checked ? 'celebrating' : 'listening'} size={66} />
-            <Text style={styles.targetLine}>{checked ? card.answer : 'Say it before you reveal it.'}</Text>
+            <Text style={typography.targetLine}>{checked ? card.answer : 'Say it before you reveal it.'}</Text>
           </View>
         ) : (
           <TextInput
@@ -740,7 +718,7 @@ function PracticeScreen({
         {checked ? (
           <View style={styles.answerBox}>
             <Text style={styles.answerText}>{card.answer}</Text>
-            <Text style={isCorrect || isSpeakCard ? styles.correctText : styles.correctionText}>
+            <Text style={isCorrect || isSpeakCard ? typography.correctText : typography.correctionText}>
               {isCorrect || isSpeakCard ? card.feedback : `Close. Mila saved this weak item and opened a mission: ${card.weakItem}.`}
             </Text>
           </View>
@@ -776,13 +754,13 @@ function SpeakingScreen({ onContinue }: { onContinue: () => void }) {
   return (
     <ScreenFrame>
       <ProgressBar active={2} />
-      <Text style={styles.screenTitle}>Speak</Text>
-      <Text style={styles.lede}>{lesson.speakingTask.prompt}</Text>
+      <Text style={typography.screenTitle}>Speak</Text>
+      <Text style={typography.lede}>{lesson.speakingTask.prompt}</Text>
 
       <Card style={styles.promptCard}>
-        <Text style={styles.caption}>{phase === 'listen' ? 'Listen' : phase === 'speak' ? 'Speak' : 'Repair'}</Text>
-        <Text style={styles.promptStrong}>{lesson.speakingTask.starter}</Text>
-        <Text style={styles.englishGuide}>
+        <Text style={typography.caption}>{phase === 'listen' ? 'Listen' : phase === 'speak' ? 'Speak' : 'Repair'}</Text>
+        <Text style={typography.promptStrong}>{lesson.speakingTask.starter}</Text>
+        <Text style={typography.englishGuide}>
           {phase === 'listen' ? lesson.speakingTask.listenCue : `English guide: ${lesson.speakingTask.englishGuide}`}
         </Text>
       </Card>
@@ -799,16 +777,16 @@ function SpeakingScreen({ onContinue }: { onContinue: () => void }) {
 
       {phase === 'feedback' ? (
         <Card>
-          <Text style={styles.caption}>Heard</Text>
-          <Text style={styles.cardTitle}>{lesson.speakingTask.transcript}</Text>
-          <Text style={styles.targetLine}>German target: {lesson.speakingTask.target}</Text>
-          <Text style={styles.correctionText}>{lesson.speakingTask.correction}</Text>
+          <Text style={typography.caption}>Heard</Text>
+          <Text style={typography.cardTitle}>{lesson.speakingTask.transcript}</Text>
+          <Text style={typography.targetLine}>German target: {lesson.speakingTask.target}</Text>
+          <Text style={typography.correctionText}>{lesson.speakingTask.correction}</Text>
         </Card>
       ) : (
         <Card>
-          <Text style={styles.caption}>Mila</Text>
-          <Text style={styles.cardTitle}>{phase === 'listen' ? lesson.speakingTask.target : lesson.speakingTask.retryPrompt}</Text>
-          <Text style={styles.mutedText}>This MVP simulates listening locally. Your correction is still saved to review.</Text>
+          <Text style={typography.caption}>Mila</Text>
+          <Text style={typography.cardTitle}>{phase === 'listen' ? lesson.speakingTask.target : lesson.speakingTask.retryPrompt}</Text>
+          <Text style={typography.muted}>This MVP simulates listening locally. Your correction is still saved to review.</Text>
         </Card>
       )}
 
@@ -839,22 +817,22 @@ function RoleplayScreen({
 
   return (
     <ScreenFrame activeTab="Roleplay" onTabPress={onTabPress}>
-      <HeaderWithMascot title="Roleplay" subtitle={scene} state="idle" />
+      <MilaHeader title="Roleplay" subtitle={scene} state="idle" />
 
       <Card style={styles.sceneCard}>
         <StoreAssistant size={64} />
         <View style={styles.flex}>
-          <Text style={styles.cardTitle}>{character}</Text>
-          <Text style={styles.mutedText}>In-scene character. She stays in German.</Text>
-          <Text style={styles.englishGuide}>Goal: {goal}</Text>
+          <Text style={typography.cardTitle}>{character}</Text>
+          <Text style={typography.muted}>In-scene character. She stays in German.</Text>
+          <Text style={typography.englishGuide}>Goal: {goal}</Text>
         </View>
       </Card>
 
       <Card style={styles.coachCard}>
         <Mascot state="encouraging" size={52} />
         <View style={styles.flex}>
-          <Text style={styles.cardTitle}>Mila coach</Text>
-          <Text style={styles.mutedText}>English guidance stays outside the scene. Use it only when stuck.</Text>
+          <Text style={typography.cardTitle}>Mila coach</Text>
+          <Text style={typography.muted}>English guidance stays outside the scene. Use it only when stuck.</Text>
           <View style={styles.rowWrap}>
             {targetWords.map((word) => (
               <Pill key={word} label={word} />
@@ -868,9 +846,9 @@ function RoleplayScreen({
       ))}
 
       <Card style={styles.coachHintCard}>
-        <Text style={styles.caption}>Mila hint</Text>
-        <Text style={styles.targetLine}>German target: {targetRule}</Text>
-        <Text style={styles.englishGuide}>English guide: {lesson.roleplay.englishHint}</Text>
+        <Text style={typography.caption}>Mila hint</Text>
+        <Text style={typography.targetLine}>German target: {targetRule}</Text>
+        <Text style={typography.englishGuide}>English guide: {lesson.roleplay.englishHint}</Text>
       </Card>
       <View style={styles.replyBox}>
         <Text style={styles.replyText}>{replied ? lesson.roleplay.successLine : 'Speak or type your reply'}</Text>
@@ -898,31 +876,31 @@ function MistakesScreen({
 
   return (
     <ScreenFrame activeTab="Notebook" onTabPress={onTabPress}>
-      <HeaderWithMascot title="Mistakes" subtitle="Your personal trainer" state="correcting" />
+      <MilaHeader title="Mistakes" subtitle="Your personal trainer" state="correcting" />
 
       {mistakes.map((mistake) => (
         <Card key={mistake.id} style={styles.mistakeCard}>
-          <Text style={styles.dangerLabel}>{mistake.tag}</Text>
-          <Text style={styles.wrongText}>{mistake.wrong}</Text>
-          <Text style={styles.rightText}>{mistake.correct}</Text>
-          <Text style={styles.mutedText}>{mistake.rule}</Text>
+          <Text style={typography.dangerLabel}>{mistake.tag}</Text>
+          <Text style={typography.wrongText}>{mistake.wrong}</Text>
+          <Text style={typography.rightText}>{mistake.correct}</Text>
+          <Text style={typography.muted}>{mistake.rule}</Text>
           <View style={styles.rowWrap}>
             <Pill label={`${mistake.timesWrong} times wrong`} tone="danger" />
             <Pill label={`Review ${mistake.nextReview.toLowerCase()}`} tone="warm" />
           </View>
           {memory.missions.find((mission) => mission.mistakeId === mistake.id) ? (
-            <Text style={styles.targetLine}>
+            <Text style={typography.targetLine}>
               Mission: {missionPathLabel(memory.missions.find((mission) => mission.mistakeId === mistake.id)!)}
             </Text>
           ) : null}
           {reviewed ? (
-            <Text style={styles.correctText}>Fixed once now. Mila will bring it back tomorrow.</Text>
+            <Text style={typography.correctText}>Fixed once now. Mila will bring it back tomorrow.</Text>
           ) : null}
         </Card>
       ))}
 
       <View style={styles.replyBox}>
-        <Text style={styles.caption}>Quick repair</Text>
+        <Text style={typography.caption}>Quick repair</Text>
         <Text style={styles.replyText}>{reviewed ? lesson.savedMistake.correct : 'Say the corrected sentence before continuing.'}</Text>
       </View>
 
@@ -949,12 +927,12 @@ function NotebookScreen({ memory, onTabPress }: { memory: AppMemory; onTabPress:
 
   return (
     <ScreenFrame activeTab="Notebook" onTabPress={onTabPress}>
-      <HeaderWithMascot title="Learning Notebook" subtitle="Words, rules, mistakes, and review items Mila saved for you." state="reviewing" />
+      <MilaHeader title="Learning Notebook" subtitle="Words, rules, mistakes, and review items Mila saved for you." state="reviewing" />
 
       <Card style={styles.notebookHero}>
         <View style={styles.flex}>
-          <Text style={styles.cardTitle}>Review due</Text>
-          <Text style={styles.mutedText}>
+          <Text style={typography.cardTitle}>Review due</Text>
+          <Text style={typography.muted}>
             {memory.reviewDue.length
               ? memory.reviewDue.slice(0, 2).join(' · ')
               : hasMistake
@@ -966,87 +944,76 @@ function NotebookScreen({ memory, onTabPress }: { memory: AppMemory; onTabPress:
       </Card>
 
       {memory.missions.length ? (
-        <>
-          <Text style={styles.sectionTitle}>Mila missions</Text>
-          <Card>
-            {memory.missions.map((mission) => (
-              <View key={mission.id} style={styles.notebookRow}>
-                <Text style={styles.germanText}>{mission.title}</Text>
-                <Text style={styles.englishText}>{missionPathLabel(mission)}</Text>
-                <Text style={styles.reviewText}>Now: {missionStageLabel(mission.stage)} · Review: {mission.nextReview}</Text>
-              </View>
-            ))}
-          </Card>
-        </>
+        <NotebookSection title="Mila missions" accent="amber">
+          {memory.missions.map((mission) => (
+            <View key={mission.id} style={styles.notebookRow}>
+              <Text style={typography.germanText}>{mission.title}</Text>
+              <Text style={typography.englishText}>{missionPathLabel(mission)}</Text>
+              <Text style={typography.reviewText}>Now: {missionStageLabel(mission.stage)} · Review: {mission.nextReview}</Text>
+            </View>
+          ))}
+        </NotebookSection>
       ) : null}
 
       {memory.activeAssignment ? (
-        <>
-          <Text style={styles.sectionTitle}>Latest Mila assignment</Text>
-          <Card>
-            <Text style={styles.germanText}>{memory.activeAssignment.title}</Text>
-            <Text style={styles.englishText}>Source: {sourceLabel(memory.activeAssignment.source)}</Text>
-            <Text style={styles.reviewText}>{memory.activeAssignment.nextAction}</Text>
-          </Card>
-        </>
+        <NotebookSection title="Latest Mila assignment" accent="gold">
+          <Text style={typography.germanText}>{memory.activeAssignment.title}</Text>
+          <Text style={typography.englishText}>Source: {sourceLabel(memory.activeAssignment.source)}</Text>
+          <Text style={typography.reviewText}>{memory.activeAssignment.nextAction}</Text>
+        </NotebookSection>
       ) : null}
 
-      <Text style={styles.sectionTitle}>Today you practiced</Text>
-      <Card>
+      <NotebookSection title="Today you practiced" accent="sage">
         {lesson.notebook.checklist.map((item, index) => (
           <View key={item.label} style={styles.checkRow}>
             <Text style={[styles.checkBox, checklistStatus[index] && styles.checkBoxDone]}>{checklistStatus[index] ? '●' : '○'}</Text>
             <Text style={styles.checkText}>{item.label}</Text>
           </View>
         ))}
-      </Card>
+      </NotebookSection>
 
-      <Text style={styles.sectionTitle}>Words learned</Text>
-      <Card>
+      <NotebookSection title="Words learned" accent="sage">
         {words.map((item) => (
           <View key={item.id} style={styles.notebookRow}>
-            <Text style={styles.germanText}>{item.german}</Text>
-            <Text style={styles.englishText}>{item.english}</Text>
-            {item.source ? <Text style={styles.reviewText}>Source: {item.source}</Text> : null}
-            {item.reviewDue ? <Text style={styles.reviewText}>Review: {item.reviewDue}</Text> : null}
+            <Text style={typography.germanText}>{item.german}</Text>
+            <Text style={typography.englishText}>{item.english}</Text>
+            {item.source ? <Text style={typography.reviewText}>Source: {item.source}</Text> : null}
+            {item.reviewDue ? <Text style={typography.reviewText}>Review: {item.reviewDue}</Text> : null}
           </View>
         ))}
-      </Card>
+      </NotebookSection>
 
-      <Text style={styles.sectionTitle}>Sentences learned</Text>
-      <Card>
+      <NotebookSection title="Sentences learned" accent="gold">
         {sentences.map((item) => (
           <View key={item.id} style={styles.notebookRow}>
-            <Text style={styles.germanText}>{item.german}</Text>
-            <Text style={styles.englishText}>{item.english}</Text>
-            {item.source ? <Text style={styles.reviewText}>Source: {item.source}</Text> : null}
-            {item.reviewDue ? <Text style={styles.reviewText}>Review: {item.reviewDue}</Text> : null}
+            <Text style={typography.germanText}>{item.german}</Text>
+            <Text style={typography.englishText}>{item.english}</Text>
+            {item.source ? <Text style={typography.reviewText}>Source: {item.source}</Text> : null}
+            {item.reviewDue ? <Text style={typography.reviewText}>Review: {item.reviewDue}</Text> : null}
           </View>
         ))}
-      </Card>
+      </NotebookSection>
 
-      <Text style={styles.sectionTitle}>Rules learned</Text>
-      <Card>
+      <NotebookSection title="Rules learned" accent="amber">
         {rules.map((rule) => (
           <View key={rule.id} style={styles.notebookRow}>
-            <Text style={styles.ruleText}>{rule.text}</Text>
-            {rule.source ? <Text style={styles.reviewText}>Source: {rule.source}</Text> : null}
-            {rule.reviewDue ? <Text style={styles.reviewText}>Review: {rule.reviewDue}</Text> : null}
+            <Text style={typography.ruleText}>{rule.text}</Text>
+            {rule.source ? <Text style={typography.reviewText}>Source: {rule.source}</Text> : null}
+            {rule.reviewDue ? <Text style={typography.reviewText}>Review: {rule.reviewDue}</Text> : null}
           </View>
         ))}
-      </Card>
+      </NotebookSection>
 
-      <Text style={styles.sectionTitle}>Mistakes fixed</Text>
-      <Card>
+      <NotebookSection title="Mistakes fixed" accent="coral">
         {(memory.mistakes.length ? memory.mistakes : [lesson.savedMistake]).map((mistake) => (
           <View key={mistake.id} style={styles.notebookRow}>
-            <Text style={styles.wrongSmall}>{mistake.wrong}</Text>
-            <Text style={styles.rightSmall}>{mistake.correct}</Text>
-            <Text style={styles.englishText}>{mistake.rule}</Text>
-            <Text style={styles.reviewText}>Source: Mistake mission · Review: {mistake.nextReview}</Text>
+            <Text style={typography.wrongSmall}>{mistake.wrong}</Text>
+            <Text style={typography.rightSmall}>{mistake.correct}</Text>
+            <Text style={typography.englishText}>{mistake.rule}</Text>
+            <Text style={typography.reviewText}>Source: Mistake mission · Review: {mistake.nextReview}</Text>
           </View>
         ))}
-      </Card>
+      </NotebookSection>
     </ScreenFrame>
   );
 }
@@ -1055,41 +1022,19 @@ function MentorNoteScreen({ onFinish }: { onFinish: () => void }) {
   return (
     <ScreenFrame>
       <Mascot state="celebrating" size={120} centered />
-      <Text style={[styles.heroTitle, styles.centerText]}>Good work today</Text>
-      <Text style={[styles.lede, styles.centerText]}>You got useful article practice into a real conversation.</Text>
+      <Text style={[typography.heroTitle, styles.centerText]}>Good work today</Text>
+      <Text style={[typography.lede, styles.centerText]}>You got useful article practice into a real conversation.</Text>
 
       <Card style={styles.summaryCard}>
-        <Text style={styles.successLabel}>Improved</Text>
-        <Text style={styles.cardTitle}>{lesson.mentorNote.improved}</Text>
-        <Text style={styles.dangerLabel}>Still review</Text>
-        <Text style={styles.cardTitle}>{lesson.mentorNote.stillWork}</Text>
-        <Text style={styles.mutedText}>{lesson.mentorNote.nextFocus}</Text>
+        <Text style={typography.successLabel}>Improved</Text>
+        <Text style={typography.cardTitle}>{lesson.mentorNote.improved}</Text>
+        <Text style={typography.dangerLabel}>Still review</Text>
+        <Text style={typography.cardTitle}>{lesson.mentorNote.stillWork}</Text>
+        <Text style={typography.muted}>{lesson.mentorNote.nextFocus}</Text>
       </Card>
 
       <PrimaryButton label="Finish session" onPress={onFinish} />
     </ScreenFrame>
-  );
-}
-
-function HeaderWithMascot({
-  title,
-  subtitle,
-  state,
-}: {
-  title: string;
-  subtitle: string;
-  state: MascotState;
-}) {
-  return (
-    <View style={styles.headerWithMascot}>
-      <View style={styles.headerTextGroup}>
-        <Text style={styles.screenTitle}>{title}</Text>
-        <Text style={styles.lede}>{subtitle}</Text>
-      </View>
-      <View style={styles.headerAvatarWrap}>
-        <Mascot state={state} size={60} />
-      </View>
-    </View>
   );
 }
 
@@ -1103,188 +1048,27 @@ function StoreAssistant({ size }: { size: number }) {
   );
 }
 
-function Mascot({ state, size, centered }: { state: MascotState; size: number; centered?: boolean }) {
-  const motion = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    motion.setValue(0);
-    const duration = state === 'listening' ? 760 : state === 'correcting' ? 420 : 1200;
-    const animation = Animated.loop(
-      Animated.sequence([
-        Animated.timing(motion, {
-          toValue: 1,
-          duration,
-          easing: Easing.inOut(Easing.quad),
-          useNativeDriver: true,
-        }),
-        Animated.timing(motion, {
-          toValue: 0,
-          duration,
-          easing: Easing.inOut(Easing.quad),
-          useNativeDriver: true,
-        }),
-      ]),
-    );
-
-    animation.start();
-    return () => animation.stop();
-  }, [motion, state]);
-
-  const translateY = motion.interpolate({
-    inputRange: [0, 1],
-    outputRange: state === 'correcting' ? [0, 0] : [0, -6],
-  });
-  const translateX = motion.interpolate({
-    inputRange: [0, 0.5, 1],
-    outputRange: state === 'correcting' ? [-3, 3, -3] : [0, 0, 0],
-  });
-  const scale = motion.interpolate({
-    inputRange: [0, 1],
-    outputRange: state === 'listening' ? [1, 1.08] : state === 'celebrating' ? [1, 1.05] : [1, 1],
-  });
-
-  return (
-    <Animated.View style={[centered && styles.centerMascot, { transform: [{ translateY }, { translateX }, { scale }] }]}>
-      <Image source={mascots[state]} style={[styles.mascot, { width: size, height: size }]} resizeMode="contain" />
-    </Animated.View>
-  );
-}
-
-function Card({ children, style }: { children: React.ReactNode; style?: object }) {
-  return <View style={[styles.card, style]}>{children}</View>;
-}
-
-function Pill({ label, tone = 'mint' }: { label: string; tone?: 'mint' | 'warm' | 'danger' }) {
-  return <Text style={[styles.pill, tone === 'warm' && styles.pillWarm, tone === 'danger' && styles.pillDanger]}>{label}</Text>;
-}
-
-function PrimaryButton({ label, onPress, compact }: { label: string; onPress: () => void; compact?: boolean }) {
-  return (
-    <Pressable style={[styles.primaryButton, compact && styles.compactButton]} onPress={onPress}>
-      <Text style={styles.primaryButtonText}>{label}</Text>
-    </Pressable>
-  );
-}
-
-function SecondaryButton({ label, onPress, dark }: { label: string; onPress: () => void; dark?: boolean }) {
-  return (
-    <Pressable style={[styles.secondaryButton, dark && styles.darkButton]} onPress={onPress}>
-      <Text style={[styles.secondaryButtonText, dark && styles.darkButtonText]}>{label}</Text>
-    </Pressable>
-  );
-}
-
-function ProgressBar({ active }: { active: number }) {
-  return (
-    <View style={styles.progressBar}>
-      {[0, 1, 2, 3].map((item) => (
-        <View key={item} style={[styles.progressSegment, item >= active && styles.progressSegmentOff]} />
-      ))}
-    </View>
-  );
-}
-
-function ChatBubble({ side, text }: { side: 'left' | 'right'; text: string }) {
-  return (
-    <View style={[styles.chatBubble, side === 'right' && styles.chatBubbleRight]}>
-      <Text style={[styles.chatText, side === 'right' && styles.chatTextRight]}>{text}</Text>
-    </View>
-  );
-}
-
-function BottomTabs({ active, onTabPress }: { active: string; onTabPress?: (tab: string) => void }) {
-  const tabs = [
-    { key: 'Today', label: 'Today', icon: 'T' },
-    { key: 'Practice', label: 'Practice', icon: 'P' },
-    { key: 'Roleplay', label: 'Roleplay', icon: 'R' },
-    { key: 'Notebook', label: 'Notebook', icon: 'N' },
-  ];
-
-  return (
-    <View style={styles.tabBar}>
-      {tabs.map((tab) => (
-        <Pressable key={tab.key} onPress={() => onTabPress?.(tab.key)} style={styles.tabItem}>
-          <View style={[styles.tabIcon, active === tab.key && styles.tabIconActive]}>
-            <Text style={[styles.tabIconText, active === tab.key && styles.tabIconTextActive]}>{tab.icon}</Text>
-          </View>
-          <Text style={[styles.tabText, active === tab.key && styles.tabTextActive]}>{tab.label}</Text>
-        </Pressable>
-      ))}
-    </View>
-  );
-}
-
-const colors = {
-  background: '#fff9ee',
-  paper: '#fffdf8',
-  soft: '#fff2d7',
-  mint: '#dff7ea',
-  green: '#1A5D3A',
-  greenDark: '#0f4a3d',
-  primaryDark: '#0f4a3d',
-  primarySoft: '#E8F0E9',
-  accent: '#18a873',
-  gold: '#D4A017',
-  amber: '#D97706',
-  surfaceAlt: '#e5eadd',
-  ink: '#17201c',
-  muted: '#68746e',
-  line: '#ead8b9',
-  coral: '#ef705d',
-};
-
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: colors.bg,
     paddingTop: Platform.OS === 'android' ? NativeStatusBar.currentHeight ?? 0 : 0,
   },
   screen: {
     flex: 1,
-    backgroundColor: colors.background,
-    paddingHorizontal: 18,
+    backgroundColor: colors.bg,
+    paddingHorizontal: spacing.horizontal,
     paddingTop: 12,
   },
   centered: {
     alignItems: 'center',
     justifyContent: 'center',
   },
-  scrollContent: {
-    paddingTop: 16,
-    paddingBottom: 148,
-  },
-  mascot: {
-    borderRadius: 14,
-  },
-  centerMascot: {
-    alignSelf: 'center',
-  },
   loadingTitle: {
-    color: colors.greenDark,
+    color: colors.primaryDark,
     fontSize: 18,
     fontWeight: '800',
     marginTop: 16,
-  },
-  heroTitle: {
-    color: colors.ink,
-    fontSize: 30,
-    fontWeight: '900',
-    letterSpacing: 0,
-    lineHeight: 34,
-    marginTop: 8,
-  },
-  screenTitle: {
-    color: colors.ink,
-    fontSize: 24,
-    fontWeight: '900',
-    letterSpacing: 0,
-    lineHeight: 30,
-  },
-  lede: {
-    color: colors.muted,
-    fontSize: 13,
-    lineHeight: 19,
-    marginTop: 6,
   },
   centerText: {
     textAlign: 'center',
@@ -1299,167 +1083,65 @@ const styles = StyleSheet.create({
     gap: 8,
     marginTop: 12,
   },
-  pill: {
-    alignSelf: 'flex-start',
-    backgroundColor: colors.primarySoft,
-    borderRadius: 999,
-    color: colors.green,
-    fontSize: 12,
-    fontWeight: '800',
-    overflow: 'hidden',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-  },
-  pillWarm: {
-    backgroundColor: '#FFF8E1',
-    color: colors.gold,
-  },
-  pillDanger: {
-    backgroundColor: '#ffe3dc',
-    color: colors.coral,
-  },
-  card: {
-    backgroundColor: colors.paper,
-    borderColor: colors.line,
-    borderRadius: 18,
-    borderWidth: 1,
-    elevation: 3,
-    marginTop: 18,
-    padding: 18,
-    shadowColor: '#503717',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.09,
-    shadowRadius: 20,
+  flex: {
+    flex: 1,
   },
   questionCard: {
     marginTop: 54,
   },
-  cardTitle: {
-    color: colors.ink,
-    fontSize: 15,
-    fontWeight: '800',
-    lineHeight: 21,
+  heroMissionCard: {
+    backgroundColor: colors.surface,
+    marginTop: 18,
   },
-  mutedText: {
+  heroMissionTop: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 12,
+  },
+  pathList: {
+    gap: 13,
+    marginTop: 14,
+  },
+  pathItem: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 10,
+  },
+  pathDot: {
+    alignItems: 'center',
+    backgroundColor: colors.surfaceAlt,
+    borderColor: colors.border,
+    borderRadius: 999,
+    borderWidth: 1,
+    height: 28,
+    justifyContent: 'center',
+    width: 28,
+  },
+  pathDotActive: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  pathDotText: {
     color: colors.muted,
     fontSize: 12,
-    lineHeight: 18,
-    marginTop: 4,
-  },
-  primaryButton: {
-    alignItems: 'center',
-    backgroundColor: colors.green,
-    borderRadius: 14,
-    elevation: 4,
-    justifyContent: 'center',
-    marginTop: 22,
-    minHeight: 54,
-    paddingHorizontal: 18,
-    shadowColor: colors.green,
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.22,
-    shadowRadius: 18,
-  },
-  compactButton: {
-    flex: 1,
-    marginTop: 0,
-    minHeight: 48,
-  },
-  primaryButtonText: {
-    color: '#ffffff',
-    fontSize: 14,
-    fontWeight: '900',
-  },
-  secondaryButton: {
-    alignItems: 'center',
-    backgroundColor: colors.paper,
-    borderColor: colors.line,
-    borderRadius: 14,
-    borderWidth: 1,
-    flex: 1,
-    justifyContent: 'center',
-    minHeight: 48,
-  },
-  secondaryButtonText: {
-    color: colors.greenDark,
-    fontSize: 14,
-    fontWeight: '900',
-  },
-  darkButton: {
-    backgroundColor: colors.ink,
-    borderColor: colors.ink,
-  },
-  darkButtonText: {
-    color: '#ffffff',
-  },
-  headerWithMascot: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 14,
-    justifyContent: 'space-between',
-    marginTop: 0,
-  },
-  headerTextGroup: {
-    flex: 1,
-  },
-  headerAvatarWrap: {
-    alignItems: 'flex-end',
-    width: 60,
-  },
-  headerAvatarLargeWrap: {
-    alignItems: 'flex-end',
-    width: 96,
-  },
-  dashboardHeader: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 4,
-  },
-  flex: {
-    flex: 1,
-  },
-  cardHeroTitle: {
-    color: colors.ink,
-    fontSize: 22,
     fontWeight: '800',
   },
-  inlineMetaRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginTop: 10,
+  pathDotTextActive: {
+    color: '#ffffff',
   },
-  mentorCardToday: {
-    backgroundColor: colors.mint,
+  pathText: {
+    color: colors.ink,
+    fontSize: 13,
+    fontWeight: '800',
   },
-  mentorHeaderRow: {
-    alignItems: 'flex-end',
-    flexDirection: 'row',
-    gap: 12,
+  notebookPreview: {
+    backgroundColor: colors.surfaceAlt,
   },
-  quickGridQuiet: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-    marginTop: 10,
-  },
-  assignmentPanel: {
-    backgroundColor: colors.paper,
-  },
-  trainerCardToday: {
-    backgroundColor: colors.soft,
-  },
-  commandCard: {
-    backgroundColor: colors.paper,
-  },
-  mentorCard: {
-    backgroundColor: colors.mint,
-    flexDirection: 'row',
-    gap: 12,
+  memoryCard: {
+    backgroundColor: colors.surfaceAlt,
   },
   trainerCard: {
-    backgroundColor: '#fff8e8',
+    backgroundColor: colors.surfaceAlt,
     gap: 12,
   },
   commandWrap: {
@@ -1468,8 +1150,8 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   commandInput: {
-    backgroundColor: colors.paper,
-    borderColor: colors.line,
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
     borderRadius: 12,
     borderWidth: 1,
     color: colors.ink,
@@ -1485,8 +1167,8 @@ const styles = StyleSheet.create({
   },
   smallAction: {
     alignItems: 'center',
-    backgroundColor: colors.paper,
-    borderColor: colors.line,
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
     borderRadius: 12,
     borderWidth: 1,
     minHeight: 44,
@@ -1494,191 +1176,80 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   smallActionText: {
-    color: colors.greenDark,
+    color: colors.primaryDark,
     fontSize: 12,
     fontWeight: '900',
   },
   assignmentCard: {
-    backgroundColor: colors.mint,
+    backgroundColor: colors.accentTint,
   },
-  missionCard: {
-    backgroundColor: '#fff8e8',
-  },
-  missionProgressRow: {
-    alignItems: 'center',
+  stepTimeline: {
     flexDirection: 'row',
-    gap: 10,
-    marginTop: 14,
-  },
-  missionProgressTrack: {
-    backgroundColor: '#e5dccf',
-    borderRadius: 999,
-    flex: 1,
-    height: 8,
-    overflow: 'hidden',
-  },
-  missionProgressFill: {
-    backgroundColor: colors.green,
-    borderRadius: 999,
-    height: '100%',
-    width: '60%',
-  },
-  progressMeta: {
-    color: colors.muted,
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  sectionTitle: {
-    color: colors.ink,
-    fontSize: 14,
-    fontWeight: '900',
-    marginTop: 24,
-  },
-  sectionEyebrow: {
-    color: colors.green,
-    fontSize: 11,
-    fontWeight: '800',
-    letterSpacing: 0.6,
-    marginBottom: 6,
-    textTransform: 'uppercase',
-  },
-  pathList: {
-    gap: 13,
-    marginTop: 14,
-  },
-  pathItem: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 10,
-  },
-  pathDot: {
-    borderColor: colors.green,
-    borderRadius: 999,
-    borderWidth: 2,
-    height: 18,
-    width: 18,
-  },
-  pathDotActive: {
-    backgroundColor: colors.green,
-  },
-  pathText: {
-    color: colors.ink,
-    fontSize: 13,
-    fontWeight: '800',
-  },
-  prescriptionRow: {
     alignItems: 'flex-start',
-    flexDirection: 'row',
-    gap: 12,
-    paddingVertical: 8,
-  },
-  stepBadge: {
-    alignItems: 'center',
-    backgroundColor: '#e5ddcf',
-    borderRadius: 999,
-    height: 28,
-    justifyContent: 'center',
-    width: 28,
-  },
-  stepBadgeActive: {
-    backgroundColor: colors.green,
-  },
-  stepBadgeText: {
-    color: colors.greenDark,
-    fontSize: 12,
-    fontWeight: '800',
-  },
-  stepBadgeTextActive: {
-    color: '#ffffff',
-  },
-  missionStepRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 7,
     marginTop: 16,
+    marginBottom: 8,
   },
-  stepChip: {
-    backgroundColor: '#e5ddcf',
-    borderRadius: 999,
-    color: colors.muted,
-    fontSize: 11,
-    fontWeight: '700',
-    overflow: 'hidden',
-    paddingHorizontal: 9,
-    paddingVertical: 5,
-  },
-  stepChipActive: {
-    backgroundColor: colors.mint,
-    color: colors.greenDark,
-  },
-  memoryCard: {
-    backgroundColor: colors.soft,
-  },
-  notebookPreview: {
-    backgroundColor: '#fff8e8',
-  },
-  progressBar: {
-    flexDirection: 'row',
-    gap: 7,
-    marginBottom: 22,
-    marginTop: 10,
-  },
-  progressSegment: {
-    backgroundColor: colors.green,
-    borderRadius: 999,
+  stepTimelineItem: {
     flex: 1,
-    height: 6,
+    alignItems: 'center',
+    position: 'relative',
   },
-  progressSegmentOff: {
-    backgroundColor: '#dedbd2',
+  stepTimelineDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 999,
+    backgroundColor: colors.surfaceAlt,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  stepTimelineDotActive: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  stepTimelineLabel: {
+    color: colors.muted,
+    fontSize: 10,
+    fontWeight: '700',
+    marginTop: 4,
+  },
+  stepTimelineLabelActive: {
+    color: colors.primary,
+    fontWeight: '900',
+  },
+  stepTimelineLine: {
+    position: 'absolute',
+    top: 4,
+    left: '50%',
+    right: '-50%',
+    height: 2,
+    backgroundColor: colors.surfaceAlt,
+  },
+  stepTimelineLineActive: {
+    backgroundColor: colors.primary,
+  },
+  promptCard: {
+    backgroundColor: colors.surfaceAlt,
   },
   recallCard: {
     minHeight: 250,
     paddingBottom: 20,
   },
-  assignmentMiniCard: {
-    backgroundColor: '#fff8e8',
-    marginTop: 0,
-  },
-  cardTopRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  promptText: {
-    color: colors.muted,
-    fontSize: 13,
-    marginTop: 34,
-  },
-  englishGuide: {
-    color: colors.muted,
-    fontSize: 12,
-    fontWeight: '700',
-    lineHeight: 17,
-    marginTop: 8,
-  },
-  bigAnswer: {
-    color: colors.ink,
-    fontSize: 28,
-    fontWeight: '900',
-    marginTop: 12,
-  },
   answerBox: {
-    backgroundColor: '#f5efe4',
-    borderColor: colors.line,
+    backgroundColor: colors.surfaceAlt,
+    borderColor: colors.border,
     borderRadius: 12,
     borderWidth: 1,
     marginTop: 30,
     padding: 15,
   },
   answerText: {
-    color: colors.greenDark,
+    color: colors.primaryDark,
     fontSize: 18,
     fontWeight: '800',
   },
   answerInput: {
-    backgroundColor: '#f5efe4',
-    borderColor: colors.line,
+    backgroundColor: colors.surfaceAlt,
+    borderColor: colors.border,
     borderRadius: 12,
     borderWidth: 1,
     color: colors.ink,
@@ -1690,53 +1261,13 @@ const styles = StyleSheet.create({
   },
   speakPracticeBox: {
     alignItems: 'center',
-    backgroundColor: '#f5efe4',
-    borderColor: colors.line,
+    backgroundColor: colors.surfaceAlt,
+    borderColor: colors.border,
     borderRadius: 12,
     borderWidth: 1,
     gap: 8,
     marginTop: 30,
     padding: 16,
-  },
-  correctText: {
-    color: colors.greenDark,
-    fontSize: 12,
-    fontWeight: '800',
-    lineHeight: 17,
-  },
-  feedbackRow: {
-    alignItems: 'stretch',
-    flexDirection: 'column',
-    marginTop: 16,
-  },
-  feedbackTextWrap: {
-    width: '100%',
-  },
-  feedbackMascotBadge: {
-    alignItems: 'center',
-    alignSelf: 'flex-end',
-    backgroundColor: '#eef8e7',
-    borderRadius: 18,
-    height: 58,
-    justifyContent: 'center',
-    marginTop: 8,
-    overflow: 'hidden',
-    width: 58,
-  },
-  promptCard: {
-    backgroundColor: colors.soft,
-  },
-  caption: {
-    color: colors.muted,
-    fontSize: 12,
-    fontWeight: '700',
-    marginBottom: 8,
-  },
-  promptStrong: {
-    color: colors.ink,
-    fontSize: 18,
-    fontWeight: '900',
-    lineHeight: 24,
   },
   recordArea: {
     alignItems: 'center',
@@ -1745,7 +1276,7 @@ const styles = StyleSheet.create({
   },
   recordButton: {
     alignItems: 'center',
-    backgroundColor: colors.accent,
+    backgroundColor: colors.primary,
     borderRadius: 999,
     height: 90,
     justifyContent: 'center',
@@ -1759,27 +1290,13 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '800',
   },
-  correctionText: {
-    color: colors.coral,
-    fontSize: 12,
-    fontWeight: '800',
-    lineHeight: 17,
-    marginTop: 8,
-  },
-  targetLine: {
-    color: colors.primaryDark,
-    fontSize: 12,
-    fontWeight: '900',
-    lineHeight: 17,
-    marginTop: 10,
-  },
   splitActions: {
     flexDirection: 'row',
     gap: 10,
     marginTop: 18,
   },
   sceneCard: {
-    backgroundColor: colors.mint,
+    backgroundColor: colors.accentTint,
     flexDirection: 'row',
     gap: 12,
   },
@@ -1787,80 +1304,34 @@ const styles = StyleSheet.create({
     borderRadius: 18,
   },
   coachCard: {
-    backgroundColor: '#fff8e8',
+    backgroundColor: colors.goldTint,
     flexDirection: 'row',
     gap: 12,
   },
   coachHintCard: {
-    backgroundColor: colors.soft,
-  },
-  chatBubble: {
-    alignSelf: 'flex-start',
-    backgroundColor: colors.paper,
-    borderColor: colors.line,
-    borderRadius: 16,
-    borderWidth: 1,
-    marginTop: 16,
-    maxWidth: '82%',
-    padding: 14,
-  },
-  chatBubbleRight: {
-    alignSelf: 'flex-end',
-    backgroundColor: colors.green,
-    borderColor: colors.green,
-  },
-  chatText: {
-    color: colors.ink,
-    fontSize: 13,
-    fontWeight: '700',
-    lineHeight: 18,
-  },
-  chatTextRight: {
-    color: '#ffffff',
+    backgroundColor: colors.surfaceAlt,
   },
   replyBox: {
-    backgroundColor: colors.paper,
-    borderColor: colors.line,
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
     borderRadius: 14,
     borderWidth: 1,
     marginTop: 22,
     padding: 14,
   },
   replyText: {
-    color: '#9c958a',
+    color: colors.muted,
     fontSize: 13,
   },
   mistakeCard: {
     gap: 6,
-  },
-  dangerLabel: {
-    color: colors.coral,
-    fontSize: 12,
-    fontWeight: '900',
-    marginTop: 6,
-  },
-  successLabel: {
-    color: colors.primaryDark,
-    fontSize: 12,
-    fontWeight: '900',
-  },
-  wrongText: {
-    color: colors.coral,
-    fontSize: 22,
-    fontWeight: '900',
-    marginTop: 6,
-  },
-  rightText: {
-    color: colors.greenDark,
-    fontSize: 22,
-    fontWeight: '900',
   },
   summaryCard: {
     gap: 8,
     marginTop: 32,
   },
   notebookHero: {
-    backgroundColor: colors.mint,
+    backgroundColor: colors.accentTint,
     flexDirection: 'row',
     gap: 12,
   },
@@ -1877,7 +1348,7 @@ const styles = StyleSheet.create({
     width: 34,
   },
   checkBoxDone: {
-    color: colors.green,
+    color: colors.accent,
   },
   checkText: {
     color: colors.ink,
@@ -1887,89 +1358,22 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   notebookRow: {
-    borderBottomColor: '#f0e3ca',
+    borderBottomColor: colors.border,
     borderBottomWidth: 1,
     paddingVertical: 10,
   },
-  germanText: {
-    color: colors.ink,
-    fontSize: 16,
-    fontWeight: '900',
-    lineHeight: 22,
+  assignmentMiniCard: {
+    backgroundColor: colors.goldTint,
+    marginTop: 0,
   },
-  englishText: {
-    color: colors.muted,
-    fontSize: 12,
-    lineHeight: 17,
-    marginTop: 3,
-  },
-  ruleText: {
-    color: colors.greenDark,
-    fontSize: 13,
-    fontWeight: '800',
-    lineHeight: 19,
-    marginBottom: 10,
-  },
-  reviewText: {
-    color: colors.primaryDark,
-    fontSize: 11,
-    fontWeight: '800',
-    marginTop: 5,
-  },
-  wrongSmall: {
-    color: colors.coral,
-    fontSize: 14,
-    fontWeight: '900',
-  },
-  rightSmall: {
-    color: colors.greenDark,
-    fontSize: 14,
-    fontWeight: '900',
-    marginTop: 4,
-  },
-  tabBar: {
+  cardTopRow: {
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 253, 248, 0.94)',
-    borderColor: colors.line,
-    borderRadius: 18,
-    borderWidth: 1,
     flexDirection: 'row',
-    height: 58,
-    justifyContent: 'space-around',
-    marginBottom: 14,
+    justifyContent: 'space-between',
   },
-  tabItem: {
-    alignItems: 'center',
-    flex: 1,
-    height: '100%',
-    gap: 4,
-    justifyContent: 'center',
-  },
-  tabIcon: {
-    alignItems: 'center',
-    backgroundColor: colors.surfaceAlt,
-    borderRadius: 999,
-    height: 28,
-    justifyContent: 'center',
-    width: 28,
-  },
-  tabIconActive: {
-    backgroundColor: colors.green,
-  },
-  tabIconText: {
+  promptText: {
     color: colors.muted,
     fontSize: 13,
-    fontWeight: '900',
-  },
-  tabIconTextActive: {
-    color: '#ffffff',
-  },
-  tabText: {
-    color: colors.muted,
-    fontSize: 11,
-    fontWeight: '800',
-  },
-  tabTextActive: {
-    color: colors.green,
+    marginTop: 34,
   },
 });
