@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="240" viewBox="0 0 240 240" role="img" aria-label="Mila encouraging mascot placeholder">
+  <rect width="240" height="240" rx="48" fill="#FFF8E9"/>
+  <ellipse cx="120" cy="198" rx="70" ry="12" fill="#17201C" opacity=".10"/>
+  <circle cx="120" cy="112" r="72" fill="#9BCB9D"/>
+  <path d="M70 86c18-32 82-32 100 0v60H70z" fill="#FFF1CE"/>
+  <path d="M82 54c20-25 54-33 78-16-13 27-44 37-78 16z" fill="#1F654B"/>
+  <path d="M62 137h116v28H62z" fill="#E94F37"/><path d="M122 137h56v28h-56z" fill="#F6B443"/>
+  <path d="M84 106c9-12 20-12 29 0M128 106c9-12 20-12 29 0" fill="none" stroke="#12372C" stroke-width="7" stroke-linecap="round"/>
+  <path d="M112 126c4-7 12-7 16 0-4 8-12 8-16 0z" fill="#E69A22"/>
+  <path d="M104 139c10 16 24 16 34 0" fill="none" stroke="#8A3922" stroke-width="6" stroke-linecap="round"/>
+  <path d="M177 118c17 0 30 13 30 30s-13 30-30 30" fill="none" stroke="#7EBA86" stroke-width="18" stroke-linecap="round"/>
+  <path d="M197 80l16 16 30-34" fill="none" stroke="#18A873" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

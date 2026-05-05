@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="240" viewBox="0 0 240 240" role="img" aria-label="Mila correcting mascot placeholder">
+  <rect width="240" height="240" rx="48" fill="#FFF8E9"/>
+  <ellipse cx="120" cy="198" rx="70" ry="12" fill="#17201C" opacity=".10"/>
+  <circle cx="120" cy="112" r="72" fill="#9BCB9D"/>
+  <path d="M70 86c18-32 82-32 100 0v60H70z" fill="#FFF1CE"/>
+  <path d="M82 54c20-25 54-33 78-16-13 27-44 37-78 16z" fill="#1F654B"/>
+  <path d="M62 137h116v28H62z" fill="#E94F37"/><path d="M122 137h56v28h-56z" fill="#F6B443"/>
+  <circle cx="94" cy="108" r="14" fill="none" stroke="#12372C" stroke-width="6"/>
+  <circle cx="146" cy="108" r="14" fill="none" stroke="#12372C" stroke-width="6"/>
+  <path d="M108 108h24" stroke="#12372C" stroke-width="5"/>
+  <path d="M112 126c4-7 12-7 16 0-4 8-12 8-16 0z" fill="#E69A22"/>
+  <path d="M108 142c8 10 20 10 28 0" fill="none" stroke="#8A3922" stroke-width="5" stroke-linecap="round"/>
+  <path d="M191 51c24 0 39 15 39 37 0 21-14 34-35 37l-13 18-2-19c-18-5-28-17-28-36 0-22 15-37 39-37z" fill="#FFF4DA" stroke="#E5C78D" stroke-width="4"/>
+  <text x="184" y="105" font-size="55" font-family="Arial" font-weight="700" fill="#EF705D">!</text>
+</svg>

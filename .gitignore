@@ -8,6 +8,7 @@ node_modules/
 dist/
 web-build/
 expo-env.d.ts
+.chrome-*/
 
 # Native
 .kotlin/
@@ -25,6 +26,21 @@ expo-env.d.ts
 npm-debug.*
 yarn-debug.*
 yarn-error.*
+expo-server*.log
+expo-server*.err.log
+*.xml
+
+# local verification artifacts
+verification-*.png
+expo-device-*.png
+expo-go-*.png
+test-*.png
+crop-debug.jpg
+
+# rejected/generated design experiments
+assets/mila/mila-human-*.png
+assets/mila/lisa-store-assistant-human.png
+assets/mila/mila-concept-sheet.png
 
 # macOS
 .DS_Store

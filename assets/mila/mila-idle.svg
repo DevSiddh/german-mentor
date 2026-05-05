@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="240" viewBox="0 0 240 240" role="img" aria-label="Mila idle mascot placeholder">
+  <rect width="240" height="240" rx="48" fill="#FFF8E9"/>
+  <ellipse cx="120" cy="198" rx="70" ry="12" fill="#17201C" opacity=".10"/>
+  <circle cx="120" cy="112" r="72" fill="#9BCB9D"/>
+  <path d="M70 86c18-32 82-32 100 0v60H70z" fill="#FFF1CE"/>
+  <ellipse cx="77" cy="42" rx="16" ry="30" fill="#7EBA86" transform="rotate(-35 77 42)"/>
+  <ellipse cx="163" cy="42" rx="16" ry="30" fill="#7EBA86" transform="rotate(35 163 42)"/>
+  <path d="M82 54c20-25 54-33 78-16-13 27-44 37-78 16z" fill="#1F654B"/>
+  <path d="M92 142h56v35H92z" fill="#17201C"/>
+  <path d="M62 137h116v28H62z" rx="14" fill="#E94F37"/>
+  <path d="M122 137h56v28h-56z" fill="#F6B443"/>
+  <circle cx="94" cy="108" r="14" fill="#12372C"/>
+  <circle cx="146" cy="108" r="14" fill="#12372C"/>
+  <circle cx="99" cy="103" r="5" fill="#FFF"/>
+  <circle cx="151" cy="103" r="5" fill="#FFF"/>
+  <path d="M112 126c4-7 12-7 16 0-4 8-12 8-16 0z" fill="#E69A22"/>
+  <path d="M105 140c8 12 22 12 30 0" fill="none" stroke="#8A3922" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="79" cy="130" r="9" fill="#F2A37B" opacity=".45"/>
+  <circle cx="161" cy="130" r="9" fill="#F2A37B" opacity=".45"/>
+</svg>
