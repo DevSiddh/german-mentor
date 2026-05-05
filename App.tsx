@@ -1219,8 +1219,14 @@ const colors = {
   paper: '#fffdf8',
   soft: '#fff2d7',
   mint: '#dff7ea',
-  green: '#18a873',
+  green: '#1A5D3A',
   greenDark: '#0f4a3d',
+  primaryDark: '#0f4a3d',
+  primarySoft: '#E8F0E9',
+  accent: '#18a873',
+  gold: '#D4A017',
+  amber: '#D97706',
+  surfaceAlt: '#e5eadd',
   ink: '#17201c',
   muted: '#68746e',
   line: '#ead8b9',
@@ -1295,9 +1301,9 @@ const styles = StyleSheet.create({
   },
   pill: {
     alignSelf: 'flex-start',
-    backgroundColor: colors.mint,
+    backgroundColor: colors.primarySoft,
     borderRadius: 999,
-    color: colors.greenDark,
+    color: colors.green,
     fontSize: 12,
     fontWeight: '800',
     overflow: 'hidden',
@@ -1305,8 +1311,8 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   pillWarm: {
-    backgroundColor: colors.soft,
-    color: '#775416',
+    backgroundColor: '#FFF8E1',
+    color: colors.gold,
   },
   pillDanger: {
     backgroundColor: '#ffe3dc',
@@ -1739,14 +1745,14 @@ const styles = StyleSheet.create({
   },
   recordButton: {
     alignItems: 'center',
-    backgroundColor: colors.green,
+    backgroundColor: colors.accent,
     borderRadius: 999,
     height: 90,
     justifyContent: 'center',
     width: 90,
   },
   recordButtonDone: {
-    backgroundColor: colors.greenDark,
+    backgroundColor: colors.primaryDark,
   },
   recordText: {
     color: '#ffffff',
@@ -1761,7 +1767,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   targetLine: {
-    color: colors.greenDark,
+    color: colors.primaryDark,
     fontSize: 12,
     fontWeight: '900',
     lineHeight: 17,
@@ -1834,7 +1840,7 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   successLabel: {
-    color: colors.greenDark,
+    color: colors.primaryDark,
     fontSize: 12,
     fontWeight: '900',
   },
@@ -1905,7 +1911,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   reviewText: {
-    color: '#775416',
+    color: colors.primaryDark,
     fontSize: 11,
     fontWeight: '800',
     marginTop: 5,
@@ -1941,7 +1947,7 @@ const styles = StyleSheet.create({
   },
   tabIcon: {
     alignItems: 'center',
-    backgroundColor: '#cdd8d1',
+    backgroundColor: colors.surfaceAlt,
     borderRadius: 999,
     height: 28,
     justifyContent: 'center',
@@ -1951,7 +1957,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.green,
   },
   tabIconText: {
-    color: colors.greenDark,
+    color: colors.muted,
     fontSize: 13,
     fontWeight: '900',
   },
@@ -1960,7 +1966,7 @@ const styles = StyleSheet.create({
   },
   tabText: {
     color: colors.muted,
-    fontSize: 9,
+    fontSize: 11,
     fontWeight: '800',
   },
   tabTextActive: {
