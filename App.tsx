@@ -25,7 +25,6 @@ import ChatBubble from './src/components/ChatBubble';
 import Mascot, { MascotState } from './src/components/Mascot';
 import ScreenFrame from './src/components/ScreenFrame';
 import MilaHeader from './src/components/MilaHeader';
-import MissionCard from './src/components/MissionCard';
 import NotebookSection from './src/components/NotebookSection';
 import { colors, typography, spacing } from './src/components/theme';
 
@@ -199,13 +198,6 @@ export default function App() {
         <TodayScreen
           memory={memory}
           onStart={() => setScreen('mission')}
-          onStartAssignment={startActiveAssignment}
-          onQuickAction={(action) => {
-            void handleQuickAction(action);
-          }}
-          onCommand={(command) => {
-            void handleCommand(command);
-          }}
           onTabPress={handleTabPress}
         />
       )}
@@ -291,149 +283,65 @@ function OnboardingScreen({ onContinue }: { onContinue: () => void }) {
 function TodayScreen({
   memory,
   onStart,
-  onStartAssignment,
-  onQuickAction,
-  onCommand,
   onTabPress,
 }: {
   memory: AppMemory;
   onStart: () => void;
-  onStartAssignment: () => void;
-  onQuickAction: (action: QuickAction) => void;
-  onCommand: (command: string) => void;
   onTabPress: (tab: string) => void;
 }) {
-  const weakWords = memory.weakItems.length ? memory.weakItems : lesson.weakWords;
-  const [command, setCommand] = useState('');
-  const activeMission = memory.missions[0];
-
   return (
     <ScreenFrame activeTab="Today" onTabPress={onTabPress}>
-      <MilaHeader title={`${lesson.level} Today`} subtitle="Mila prepared one guided mission" state="idle" />
-
-      <Card style={styles.heroMissionCard}>
-        <View style={styles.heroMissionTop}>
-          <Mascot state="encouraging" size={56} />
-          <View style={styles.flex}>
-            <Text style={typography.successLabel}>Clothing shop mission</Text>
-            <Text style={typography.cardTitle}>Ask for a sweater in size M.</Text>
-            <Text style={typography.muted}>German target: Ich suche einen Pullover in Größe M.</Text>
-            <Text style={typography.englishGuide}>English help stays visible so this still feels like learning, not a German-only app.</Text>
-            <View style={styles.rowWrap}>
-              <Pill label="der Pullover" />
-              <Pill label="einen Pullover" tone="warm" />
-              <Pill label="size M" />
-            </View>
-          </View>
+      {/* Header: greeting left, small Mila right */}
+      <View style={styles.todayHeader}>
+        <View style={styles.flex}>
+          <Text style={styles.todayGreeting}>Guten Morgen! 👋</Text>
+          <Text style={styles.todaySubGreeting}>Mila has one mission ready for you.</Text>
         </View>
+        <Mascot state="idle" size={48} />
+      </View>
+
+      {/* Section eyebrow */}
+      <Text style={styles.sectionEyebrow}>Today's mission</Text>
+
+      {/* Hero mission card */}
+      <Card style={styles.heroMissionCard}>
+        <Text style={styles.missionCategory}>Clothing shop</Text>
+        <Text style={styles.missionGerman}>Ich suche einen Pullover in Größe M.</Text>
+        <Text style={styles.missionEnglish}>I am looking for a sweater in size M.</Text>
+
+        <View style={styles.missionProgressRow}>
+          <View style={styles.progressCompact}>
+            <ProgressBar active={0} />
+          </View>
+          <Text style={styles.missionProgressText}>0 of 6 steps</Text>
+        </View>
+
+        <View style={styles.rowWrap}>
+          <Pill label="der Pullover" />
+          <Pill label="einen Pullover" tone="warm" />
+          <Pill label="Größe M" />
+        </View>
+
         <PrimaryButton label="Start mission" onPress={onStart} />
       </Card>
 
-      {activeMission ? <MissionCard mission={activeMission} /> : null}
-
-      <Text style={typography.sectionTitle}>Guided path</Text>
-      <View style={styles.pathList}>
-        {lesson.prescription.map((item, index) => (
-          <View key={item.step} style={styles.pathItem}>
-            <View style={[styles.pathDot, index === 0 && styles.pathDotActive]}>
-              <Text style={[styles.pathDotText, index === 0 && styles.pathDotTextActive]}>{index + 1}</Text>
-            </View>
-            <View style={styles.flex}>
-              <Text style={styles.pathText}>{item.step}</Text>
-              <Text style={typography.muted}>{item.detail}</Text>
-            </View>
+      {/* Compact review preview */}
+      <Card style={styles.reviewPreview}>
+        <Text style={typography.cardTitle}>Coming up for review</Text>
+        {lesson.notebook.words.slice(0, 2).map((word) => (
+          <View key={word.id} style={styles.reviewRow}>
+            <Text style={typography.germanText}>{word.german}</Text>
+            <Text style={typography.reviewText}>{word.reviewDue}</Text>
           </View>
         ))}
-      </View>
-
-      <Text style={typography.sectionTitle}>Weak words</Text>
-      <View style={styles.rowWrap}>
-        {weakWords.slice(0, 4).map((word, index) => (
-          <Pill key={`${word}-${index}`} label={word} tone={index % 2 ? 'warm' : 'mint'} />
+        {lesson.notebook.rules.slice(0, 1).map((rule) => (
+          <View key={rule.id} style={styles.reviewRow}>
+            <Text style={typography.germanText}>{rule.text}</Text>
+            <Text style={typography.reviewText}>{rule.reviewDue}</Text>
+          </View>
         ))}
-      </View>
-
-      <Card style={styles.notebookPreview}>
-        <Text style={typography.cardTitle}>Learning Notebook</Text>
-        <Text style={typography.muted}>Saved words, rules, and review items.</Text>
-        <View style={styles.rowWrap}>
-          <Pill label={`${Math.max(memory.words.length, lesson.notebook.words.length)} words`} />
-          <Pill label={`${Math.max(memory.sentences.length, lesson.notebook.sentences.length)} sentences`} tone="warm" />
-          <Pill label={`${memory.mistakes.length} saved mistakes`} tone="danger" />
-        </View>
-      </Card>
-
-      {memory.activeAssignment ? (
-        <AssignmentCard assignment={memory.activeAssignment} onStart={onStartAssignment} />
-      ) : null}
-
-      {memory.completedSessions > 0 ? (
-        <Card style={styles.memoryCard}>
-          <Text style={typography.cardTitle}>Mila remembered</Text>
-          <Text style={typography.muted}>{memory.lastMentorNote}</Text>
-        </Card>
-      ) : null}
-
-      <Card style={styles.trainerCard}>
-        <Text style={typography.cardTitle}>Ask Mila for extra practice</Text>
-        <Text style={typography.muted}>The mission is the main path. These are secondary controls for later practice.</Text>
-        <View style={styles.commandWrap}>
-          <TextInput
-            value={command}
-            onChangeText={setCommand}
-            placeholder="I am weak in articles"
-            placeholderTextColor="#8f948c"
-            style={styles.commandInput}
-          />
-          <PrimaryButton
-            label="Ask Mila"
-            onPress={() => {
-              const trimmed = command.trim();
-              if (!trimmed) return;
-              onCommand(trimmed);
-              setCommand('');
-            }}
-          />
-        </View>
-        <View style={styles.quickGrid}>
-          <SmallAction label="Revise weak area" onPress={() => onQuickAction('revise')} />
-          <SmallAction label="Quiz me" onPress={() => onQuickAction('quiz')} />
-          <SmallAction label="Start roleplay" onPress={() => onQuickAction('roleplay')} />
-          <SmallAction label="Repeat lesson" onPress={() => onQuickAction('repeat')} />
-        </View>
       </Card>
     </ScreenFrame>
-  );
-}
-
-function AssignmentCard({ assignment, onStart }: { assignment: Assignment; onStart: () => void }) {
-  return (
-    <Card style={styles.assignmentCard}>
-      <Text style={typography.successLabel}>{sourceLabel(assignment.source)}</Text>
-      <Text style={typography.cardTitle}>{assignment.title}</Text>
-      <Text style={typography.muted}>{assignment.mentorMessage}</Text>
-      <View style={styles.rowWrap}>
-        {assignment.targetWords.map((word) => (
-          <Pill key={word} label={word} />
-        ))}
-      </View>
-      <Text style={typography.targetLine}>Regel: {assignment.targetRules[0]}</Text>
-      <Text style={typography.correctionText}>Achte auf: {assignment.mistakeWatch.join(', ')}</Text>
-      {assignment.roleplay ? (
-        <Text style={typography.englishGuide}>
-          Figur: {assignment.roleplay.character} · Szene: {assignment.roleplay.scene}
-        </Text>
-      ) : null}
-      <PrimaryButton label={assignment.nextAction} onPress={onStart} />
-    </Card>
-  );
-}
-
-function SmallAction({ label, onPress }: { label: string; onPress: () => void }) {
-  return (
-    <Pressable style={styles.smallAction} onPress={onPress}>
-      <Text style={styles.smallActionText}>{label}</Text>
-    </Pressable>
   );
 }
 
@@ -1093,95 +1001,75 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     marginTop: 18,
   },
-  heroMissionTop: {
+  todayHeader: {
     flexDirection: 'row',
-    gap: 12,
-    marginBottom: 12,
+    alignItems: 'center',
+    marginTop: 8,
   },
-  pathList: {
-    gap: 13,
+  todayGreeting: {
+    color: colors.ink,
+    fontSize: 22,
+    fontWeight: '900',
+    lineHeight: 28,
+  },
+  todaySubGreeting: {
+    color: colors.muted,
+    fontSize: 13,
+    lineHeight: 19,
+    marginTop: 4,
+  },
+  sectionEyebrow: {
+    color: colors.muted,
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
+    marginTop: 20,
+    marginBottom: 4,
+  },
+  missionCategory: {
+    color: colors.muted,
+    fontSize: 12,
+    fontWeight: '700',
+    marginBottom: 6,
+  },
+  missionGerman: {
+    color: colors.ink,
+    fontSize: 20,
+    fontWeight: '900',
+    lineHeight: 26,
+  },
+  missionEnglish: {
+    color: colors.muted,
+    fontSize: 13,
+    lineHeight: 19,
+    marginTop: 6,
+  },
+  missionProgressRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
     marginTop: 14,
   },
-  pathItem: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 10,
+  progressCompact: {
+    flex: 1,
   },
-  pathDot: {
-    alignItems: 'center',
-    backgroundColor: colors.surfaceAlt,
-    borderColor: colors.border,
-    borderRadius: 999,
-    borderWidth: 1,
-    height: 28,
-    justifyContent: 'center',
-    width: 28,
-  },
-  pathDotActive: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
-  },
-  pathDotText: {
+  missionProgressText: {
     color: colors.muted,
     fontSize: 12,
     fontWeight: '800',
   },
-  pathDotTextActive: {
-    color: '#ffffff',
-  },
-  pathText: {
-    color: colors.ink,
-    fontSize: 13,
-    fontWeight: '800',
-  },
-  notebookPreview: {
+  reviewPreview: {
     backgroundColor: colors.surfaceAlt,
+    marginTop: 18,
   },
-  memoryCard: {
-    backgroundColor: colors.surfaceAlt,
-  },
-  trainerCard: {
-    backgroundColor: colors.surfaceAlt,
-    gap: 12,
-  },
-  commandWrap: {
-    gap: 10,
-    marginTop: 12,
-    width: '100%',
-  },
-  commandInput: {
-    backgroundColor: colors.surface,
-    borderColor: colors.border,
-    borderRadius: 12,
-    borderWidth: 1,
-    color: colors.ink,
-    fontSize: 14,
-    fontWeight: '700',
-    minHeight: 50,
-    paddingHorizontal: 14,
-  },
-  quickGrid: {
+  reviewRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  smallAction: {
+    justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderColor: colors.border,
-    borderRadius: 12,
-    borderWidth: 1,
-    minHeight: 44,
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-  },
-  smallActionText: {
-    color: colors.primaryDark,
-    fontSize: 12,
-    fontWeight: '900',
-  },
-  assignmentCard: {
-    backgroundColor: colors.accentTint,
+    paddingVertical: 8,
+    borderBottomColor: colors.border,
+    borderBottomWidth: 1,
   },
   stepTimeline: {
     flexDirection: 'row',
