@@ -346,6 +346,125 @@ function TodayScreen({
 }
 
 const missionSteps = ['Notice', 'Rule', 'Recall', 'Speak', 'Roleplay', 'Review'];
+const roleplaySceneChips = [
+  { label: 'Clothing shop', active: true },
+  { label: 'Cafe', active: false },
+  { label: 'Train station', active: false },
+];
+const voiceActions = ['Listen', 'Speak', 'Repeat', 'Use text'] as const;
+type VoiceAction = (typeof voiceActions)[number];
+
+function VoiceControls({
+  active,
+  onAction,
+}: {
+  active: VoiceAction;
+  onAction: (action: VoiceAction) => void;
+}) {
+  return (
+    <View style={styles.voiceControlRow}>
+      {voiceActions.map((action) => (
+        <Pressable
+          key={action}
+          onPress={() => onAction(action)}
+          style={[styles.voiceControlButton, active === action && styles.voiceControlButtonActive]}
+        >
+          <Text style={[styles.voiceControlText, active === action && styles.voiceControlTextActive]}>{action}</Text>
+        </Pressable>
+      ))}
+    </View>
+  );
+}
+
+function MilaTrainerPanel({ replied }: { replied: boolean }) {
+  return (
+    <Card style={styles.trainerPanel}>
+      <View style={styles.trainerHeaderRow}>
+        <Mascot state={replied ? 'correcting' : 'encouraging'} size={42} />
+        <View style={styles.flex}>
+          <Text style={typography.cardTitle}>Mila trainer</Text>
+          <Text style={typography.muted}>{replied ? 'Good. You used einen Pullover, not eine Pullover.' : 'Use this with Lisa now.'}</Text>
+        </View>
+      </View>
+      <View style={styles.trainerGrid}>
+        <View style={styles.trainerItem}>
+          <Text style={typography.caption}>Meaning</Text>
+          <Text style={styles.trainerItemText}>der Pullover = the sweater</Text>
+        </View>
+        <View style={styles.trainerItem}>
+          <Text style={typography.caption}>Pronunciation</Text>
+          <Text style={styles.trainerItemText}>Pullover = pull-oh-ver</Text>
+        </View>
+        <View style={styles.trainerItem}>
+          <Text style={typography.caption}>Usage</Text>
+          <Text style={styles.trainerItemText}>Ich suche einen Pullover.</Text>
+        </View>
+        <View style={styles.trainerItem}>
+          <Text style={typography.caption}>Repair</Text>
+          <Text style={styles.trainerItemText}>Not eine Pullover. Say einen Pullover.</Text>
+        </View>
+      </View>
+    </Card>
+  );
+}
+
+function RoleplayScene({
+  character,
+  scene,
+  goal,
+  replied,
+  voiceAction,
+  onVoiceAction,
+}: {
+  character: string;
+  scene: string;
+  goal: string;
+  replied: boolean;
+  voiceAction: VoiceAction;
+  onVoiceAction: (action: VoiceAction) => void;
+}) {
+  const visibleTurns = lesson.roleplay.turns.slice(0, replied ? lesson.roleplay.turns.length : 1);
+
+  return (
+    <>
+      <Card style={styles.roleplaySceneSurface}>
+        <View style={styles.roleplaySceneHeader}>
+          <StoreAssistant size={72} />
+          <View style={styles.flex}>
+            <Text style={typography.caption}>{scene}</Text>
+            <Text style={typography.cardTitle}>{character}</Text>
+            <Text style={typography.englishGuide}>Goal: {goal}</Text>
+          </View>
+        </View>
+
+        <View style={styles.sceneChipRow}>
+          {roleplaySceneChips.map((chip) => (
+            <View key={chip.label} style={[styles.sceneChip, chip.active ? styles.sceneChipActive : styles.sceneChipDisabled]}>
+              <Text style={[styles.sceneChipText, chip.active ? styles.sceneChipTextActive : styles.sceneChipTextDisabled]}>
+                {chip.active ? chip.label : `${chip.label} soon`}
+              </Text>
+            </View>
+          ))}
+        </View>
+
+        <View style={styles.conversationArea}>
+          {visibleTurns.map((turn, index) => (
+            <ChatBubble key={`${turn.speaker}-${index}`} side={turn.speaker === 'learner' ? 'right' : 'left'} text={turn.text} />
+          ))}
+          {!replied ? (
+            <View style={styles.replyPromptInline}>
+              <Text style={typography.caption}>Your line</Text>
+              <Text style={styles.replyText}>Speak or type: Ich suche einen Pullover in Größe M.</Text>
+            </View>
+          ) : null}
+        </View>
+
+        <VoiceControls active={voiceAction} onAction={onVoiceAction} />
+      </Card>
+      <MilaTrainerPanel replied={replied} />
+    </>
+  );
+}
 
 function MissionFlowScreen({
   assignment,
@@ -360,6 +479,7 @@ function MissionFlowScreen({
   const [answer, setAnswer] = useState('');
   const [checked, setChecked] = useState(false);
   const [roleplayReplied, setRoleplayReplied] = useState(false);
+  const [voiceAction, setVoiceAction] = useState<VoiceAction>('Listen');
   const step = missionSteps[stepIndex];
   const recallCorrect = normalizeAnswer(answer) === normalizeAnswer('einen Pullover');
   const targetSentence = lesson.speakingTask.target;
@@ -476,41 +596,17 @@ function MissionFlowScreen({
       ) : null}
 
       {step === 'Roleplay' ? (
-        <>
-          <Card style={styles.sceneCard}>
-            <View style={styles.flex}>
-              <Text style={typography.caption}>Scene</Text>
-              <Text style={typography.cardTitle}>Lisa</Text>
-              <Text style={typography.muted}>Clothing shop assistant</Text>
-              <Text style={typography.targetLine}>Target: {targetSentence}</Text>
-            </View>
-            <StoreAssistant size={96} />
-          </Card>
-          <Card style={styles.coachCard}>
-            <View style={styles.flex}>
-              <Text style={typography.cardTitle}>Mila (Coach)</Text>
-              <Text style={typography.muted}>Stay in the scene in German. English is only help text.</Text>
-              <Text style={typography.englishGuide}>English help: {lesson.roleplay.englishHint}</Text>
-            </View>
-            <Mascot state="encouraging" size={48} />
-          </Card>
-          {roleplayReplied ? (
-            <>
-              <ChatBubble side="right" text="Ich suche einen Pullover in Größe M." />
-              <ChatBubble side="left" text="Sehr gern. Einen Pullover in Größe M." />
-              <Card style={styles.coachHintCard}>
-                <Text style={typography.caption}>Mila correction</Text>
-                <Text style={typography.correctText}>Gut. Du hast einen Pullover gesagt, nicht eine Pullover.</Text>
-              </Card>
-            </>
-          ) : (
-            <Card style={styles.coachHintCard}>
-              <Text style={typography.caption}>Mila hint</Text>
-              <Text style={typography.targetLine}>{targetSentence}</Text>
-              <Text style={typography.englishGuide}>English help: use this with Lisa now.</Text>
-            </Card>
-          )}
-        </>
+        <RoleplayScene
+          character={lesson.roleplay.character}
+          scene={lesson.roleplay.scenario}
+          goal={lesson.roleplay.learnerGoal}
+          replied={roleplayReplied}
+          voiceAction={voiceAction}
+          onVoiceAction={(action) => {
+            setVoiceAction(action);
+            if (action === 'Speak') setRoleplayReplied(true);
+          }}
+        />
       ) : null}
 
       {step === 'Review' ? (
@@ -716,54 +812,30 @@ function RoleplayScreen({
   onTabPress: (tab: string) => void;
 }) {
   const [replied, setReplied] = useState(false);
+  const [voiceAction, setVoiceAction] = useState<VoiceAction>('Listen');
   const roleplay = assignment?.roleplay;
   const character = roleplay?.character ?? lesson.roleplay.character;
   const scene = roleplay?.scene ?? lesson.roleplay.scenario;
   const goal = roleplay?.goal ?? lesson.roleplay.learnerGoal;
-  const targetWords = assignment?.targetWords ?? lesson.roleplay.todayWords;
-  const targetRule = assignment?.targetRules[0] ?? lesson.roleplay.hint;
 
   return (
     <ScreenFrame activeTab="Roleplay" onTabPress={onTabPress}>
       <MilaHeader title="Roleplay" subtitle={scene} state="idle" />
 
-      <Card style={styles.sceneCard}>
-        <StoreAssistant size={64} />
-        <View style={styles.flex}>
-          <Text style={typography.cardTitle}>{character}</Text>
-          <Text style={typography.muted}>In-scene character. She stays in German.</Text>
-          <Text style={typography.englishGuide}>Goal: {goal}</Text>
-        </View>
-      </Card>
-
-      <Card style={styles.coachCard}>
-        <Mascot state="encouraging" size={52} />
-        <View style={styles.flex}>
-          <Text style={typography.cardTitle}>Mila coach</Text>
-          <Text style={typography.muted}>English guidance stays outside the scene. Use it only when stuck.</Text>
-          <View style={styles.rowWrap}>
-            {targetWords.map((word) => (
-              <Pill key={word} label={word} />
-            ))}
-          </View>
-        </View>
-      </Card>
-
-      {lesson.roleplay.turns.slice(0, replied ? lesson.roleplay.turns.length : 1).map((turn, index) => (
-        <ChatBubble key={`${turn.speaker}-${index}`} side={turn.speaker === 'learner' ? 'right' : 'left'} text={turn.text} />
-      ))}
-
-      <Card style={styles.coachHintCard}>
-        <Text style={typography.caption}>Mila hint</Text>
-        <Text style={typography.targetLine}>German target: {targetRule}</Text>
-        <Text style={typography.englishGuide}>English guide: {lesson.roleplay.englishHint}</Text>
-      </Card>
-      <View style={styles.replyBox}>
-        <Text style={styles.replyText}>{replied ? lesson.roleplay.successLine : 'Speak or type your reply'}</Text>
-      </View>
+      <RoleplayScene
+        character={character}
+        scene={scene}
+        goal={goal}
+        replied={replied}
+        voiceAction={voiceAction}
+        onVoiceAction={(action) => {
+          setVoiceAction(action);
+          if (action === 'Speak') setReplied(true);
+        }}
+      />
 
       <View style={styles.splitActions}>
-        <SecondaryButton label="Use Mila hint" onPress={() => setReplied(true)} />
+        <SecondaryButton label="Use text" onPress={() => setVoiceAction('Use text')} />
         <PrimaryButton label={replied ? 'End roleplay' : 'Send reply'} onPress={replied ? onEnd : () => setReplied(true)} compact />
       </View>
     </ScreenFrame>
@@ -826,6 +898,16 @@ function NotebookScreen({ memory, onTabPress }: { memory: AppMemory; onTabPress:
   const words: NotebookEntry[] = memory.words.length ? memory.words : lesson.notebook.words;
   const sentences: NotebookEntry[] = memory.sentences.length ? memory.sentences : lesson.notebook.sentences;
   const rules: RuleEntry[] = memory.rules.length ? memory.rules : lesson.notebook.rules;
+  const mistakes = memory.mistakes.length ? memory.mistakes : [lesson.savedMistake];
+  const reviewDueItems = [
+    ...memory.reviewDue.map((item, index) => ({ id: `review-${index}`, title: item, detail: 'Review due' })),
+    ...mistakes.map((mistake) => ({ id: `mistake-${mistake.id}`, title: mistake.correct, detail: `Mistake repair · ${mistake.nextReview}` })),
+    ...words.slice(0, 2).map((word) => ({ id: `word-${word.id}`, title: word.german, detail: word.reviewDue ?? 'Review soon' })),
+  ].slice(0, 3);
+  const weakSpotItems = [
+    ...memory.weakItems.map((item, index) => ({ id: `weak-${index}`, title: item, detail: 'Weak word' })),
+    ...mistakes.map((mistake) => ({ id: `weak-mistake-${mistake.id}`, title: mistake.wrong, detail: `Say: ${mistake.correct}` })),
+  ].slice(0, 4);
   const checklistStatus = [
     memory.loopProgress.includes('practice') || finishedSession,
     memory.loopProgress.includes('speaking') || finishedSession,
@@ -835,11 +917,11 @@ function NotebookScreen({ memory, onTabPress }: { memory: AppMemory; onTabPress:
 
   return (
     <ScreenFrame activeTab="Notebook" onTabPress={onTabPress}>
-      <MilaHeader title="Learning Notebook" subtitle="Words, rules, mistakes, and review items Mila saved for you." state="reviewing" />
+      <MilaHeader title="Review Notebook" subtitle="Mila keeps today small: review, repair, then move on." state="reviewing" />
 
       <Card style={styles.notebookHero}>
         <View style={styles.flex}>
-          <Text style={typography.cardTitle}>Review due</Text>
+          <Text style={typography.cardTitle}>Next tiny review</Text>
           <Text style={typography.muted}>
             {memory.reviewDue.length
               ? memory.reviewDue.slice(0, 2).join(' · ')
@@ -850,6 +932,24 @@ function NotebookScreen({ memory, onTabPress }: { memory: AppMemory; onTabPress:
         </View>
         <Mascot state="reviewing" size={54} />
       </Card>
+
+      <NotebookSection title="Review due" accent="sage">
+        {reviewDueItems.map((item) => (
+          <View key={item.id} style={styles.dashboardRow}>
+            <Text style={typography.germanText}>{item.title}</Text>
+            <Text style={typography.reviewText}>{item.detail}</Text>
+          </View>
+        ))}
+      </NotebookSection>
+
+      <NotebookSection title="Weak spots" accent="coral">
+        {weakSpotItems.map((item) => (
+          <View key={item.id} style={styles.dashboardRow}>
+            <Text style={item.title.includes('eine') ? typography.wrongSmall : typography.germanText}>{item.title}</Text>
+            <Text style={typography.reviewText}>{item.detail}</Text>
+          </View>
+        ))}
+      </NotebookSection>
 
       {memory.missions.length ? (
         <NotebookSection title="Mila missions" accent="amber">
@@ -880,8 +980,8 @@ function NotebookScreen({ memory, onTabPress }: { memory: AppMemory; onTabPress:
         ))}
       </NotebookSection>
 
-      <NotebookSection title="Words learned" accent="sage">
-        {words.map((item) => (
+      <NotebookSection title="Learned words" accent="sage">
+        {words.slice(0, 3).map((item) => (
           <View key={item.id} style={styles.notebookRow}>
             <Text style={typography.germanText}>{item.german}</Text>
             <Text style={typography.englishText}>{item.english}</Text>
@@ -891,8 +991,8 @@ function NotebookScreen({ memory, onTabPress }: { memory: AppMemory; onTabPress:
         ))}
       </NotebookSection>
 
-      <NotebookSection title="Sentences learned" accent="gold">
-        {sentences.map((item) => (
+      <NotebookSection title="Learned sentences" accent="gold">
+        {sentences.slice(0, 2).map((item) => (
           <View key={item.id} style={styles.notebookRow}>
             <Text style={typography.germanText}>{item.german}</Text>
             <Text style={typography.englishText}>{item.english}</Text>
@@ -902,8 +1002,8 @@ function NotebookScreen({ memory, onTabPress }: { memory: AppMemory; onTabPress:
         ))}
       </NotebookSection>
 
-      <NotebookSection title="Rules learned" accent="amber">
-        {rules.map((rule) => (
+      <NotebookSection title="Learned rules" accent="amber">
+        {rules.slice(0, 2).map((rule) => (
           <View key={rule.id} style={styles.notebookRow}>
             <Text style={typography.ruleText}>{rule.text}</Text>
             {rule.source ? <Text style={typography.reviewText}>Source: {rule.source}</Text> : null}
@@ -912,8 +1012,12 @@ function NotebookScreen({ memory, onTabPress }: { memory: AppMemory; onTabPress:
         ))}
       </NotebookSection>
 
+      <NotebookSection title="Mastered" accent="sage">
+        <Text style={typography.muted}>Nothing mastered yet. Mila will move easy items here after future reviews.</Text>
+      </NotebookSection>
+
       <NotebookSection title="Mistakes fixed" accent="coral">
-        {(memory.mistakes.length ? memory.mistakes : [lesson.savedMistake]).map((mistake) => (
+        {mistakes.slice(0, 2).map((mistake) => (
           <View key={mistake.id} style={styles.notebookRow}>
             <Text style={typography.wrongSmall}>{mistake.wrong}</Text>
             <Text style={typography.rightSmall}>{mistake.correct}</Text>
@@ -1209,6 +1313,107 @@ const styles = StyleSheet.create({
   coachHintCard: {
     backgroundColor: colors.surfaceAlt,
   },
+  roleplaySceneSurface: {
+    backgroundColor: colors.accentTint,
+    gap: 12,
+  },
+  roleplaySceneHeader: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 12,
+  },
+  sceneChipRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  sceneChip: {
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+  },
+  sceneChipActive: {
+    backgroundColor: colors.primarySoft,
+  },
+  sceneChipDisabled: {
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+    borderWidth: 1,
+  },
+  sceneChipText: {
+    fontSize: 11,
+    fontWeight: '800',
+  },
+  sceneChipTextActive: {
+    color: colors.primaryDark,
+  },
+  sceneChipTextDisabled: {
+    color: colors.muted,
+  },
+  conversationArea: {
+    gap: 8,
+    marginTop: 4,
+  },
+  replyPromptInline: {
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+    borderRadius: 14,
+    borderWidth: 1,
+    padding: 12,
+  },
+  voiceControlRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 4,
+  },
+  voiceControlButton: {
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+    borderRadius: 12,
+    borderWidth: 1,
+    minWidth: 76,
+    paddingHorizontal: 10,
+    paddingVertical: 10,
+  },
+  voiceControlButtonActive: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  voiceControlText: {
+    color: colors.muted,
+    fontSize: 11,
+    fontWeight: '900',
+    textAlign: 'center',
+  },
+  voiceControlTextActive: {
+    color: '#ffffff',
+  },
+  trainerPanel: {
+    backgroundColor: colors.goldTint,
+    gap: 12,
+  },
+  trainerHeaderRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 12,
+  },
+  trainerGrid: {
+    gap: 8,
+  },
+  trainerItem: {
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+    borderRadius: 12,
+    borderWidth: 1,
+    padding: 10,
+  },
+  trainerItemText: {
+    color: colors.primaryDark,
+    fontSize: 13,
+    fontWeight: '800',
+    lineHeight: 18,
+  },
   replyBox: {
     backgroundColor: colors.surface,
     borderColor: colors.border,
@@ -1259,6 +1464,14 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.border,
     borderBottomWidth: 1,
     paddingVertical: 10,
+  },
+  dashboardRow: {
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+    borderRadius: 12,
+    borderWidth: 1,
+    marginBottom: 8,
+    padding: 12,
   },
   assignmentMiniCard: {
     backgroundColor: colors.goldTint,
